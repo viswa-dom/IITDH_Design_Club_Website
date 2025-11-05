@@ -9,7 +9,7 @@ const manifestoLines = [
 export const Spirit = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -29,7 +29,7 @@ export const Spirit = () => {
   }, []);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e) => {
       if (sectionRef.current) {
         const rect = sectionRef.current.getBoundingClientRect();
         setMousePosition({

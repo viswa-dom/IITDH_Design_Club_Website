@@ -21,7 +21,7 @@ A modern, minimalist landing page featuring smooth animations, lazy loading, and
 ## Tech Stack
 
 - **React** - UI framework
-- **TypeScript** - Type safety
+- **JavaScript** - Project converted to plain JavaScript (JSX)
 - **Vite** - Build tool and dev server
 - **Tailwind CSS** - Styling
 - **Supabase** - Authentication and database
@@ -80,30 +80,30 @@ npm run preview
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript type checking
+- `npm run lint` - Run ESLint
 
 ## Project Structure
 
 ```
 src/
 ├── components/        # React components
-│   ├── Hero.tsx
-│   ├── Navbar.tsx
-│   ├── Etymology.tsx
-│   ├── Trivia.tsx
-│   ├── FeaturedWorks.tsx
-│   ├── Spirit.tsx
-│   ├── Interactive.tsx
-│   ├── Contact.tsx
-│   ├── Footer.tsx
-│   ├── LoginModal.tsx
-│   └── SignupModal.tsx
+│   ├── Hero.jsx
+│   ├── Navbar.jsx
+│   ├── Etymology.jsx
+│   ├── Trivia.jsx
+│   ├── FeaturedWorks.jsx
+│   ├── Spirit.jsx
+│   ├── Interactive.jsx
+│   ├── Contact.jsx
+│   ├── Footer.jsx
+│   ├── LoginModal.jsx
+│   └── SignupModal.jsx
 ├── hooks/            # Custom React hooks
-│   └── useAuth.ts
+│   └── useAuth.js
 ├── lib/              # Utilities and libraries
-│   └── supabase.ts
-├── App.tsx           # Main app component
-├── main.tsx          # Entry point
+│   └── supabase.js
+├── App.jsx           # Main app component
+├── main.jsx          # Entry point
 └── index.css         # Global styles
 ```
 

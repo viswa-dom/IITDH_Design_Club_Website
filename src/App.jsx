@@ -24,11 +24,11 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (email, password) => {
     await signIn(email, password);
   };
 
-  const handleSignup = async (email: string, password: string) => {
+  const handleSignup = async (email, password) => {
     await signUp(email, password);
   };
 

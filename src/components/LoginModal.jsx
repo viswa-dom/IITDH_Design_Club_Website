@@ -1,14 +1,7 @@
 import { useState } from 'react';
 import { X, Mail, Lock, AlertCircle } from 'lucide-react';
 
-interface LoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onLogin: (email: string, password: string) => Promise<void>;
-  onSwitchToSignup: () => void;
-}
-
-export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup }: LoginModalProps) => {
+export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -16,7 +9,7 @@ export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup }: Login
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
@@ -26,7 +19,7 @@ export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup }: Login
       setEmail('');
       setPassword('');
       onClose();
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || 'Failed to login. Please check your credentials.');
     } finally {
       setIsLoading(false);

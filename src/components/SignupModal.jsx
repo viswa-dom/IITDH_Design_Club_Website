@@ -1,14 +1,7 @@
 import { useState } from 'react';
 import { X, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 
-interface SignupModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSignup: (email: string, password: string) => Promise<void>;
-  onSwitchToLogin: () => void;
-}
-
-export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin }: SignupModalProps) => {
+export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,7 +11,7 @@ export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin }: Sign
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
@@ -46,7 +39,7 @@ export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin }: Sign
         onClose();
         setSuccess(false);
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);

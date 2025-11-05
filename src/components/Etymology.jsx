@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 export const Etymology = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

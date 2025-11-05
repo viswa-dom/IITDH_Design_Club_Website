@@ -1,14 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, User, LogOut } from 'lucide-react';
 
-interface NavbarProps {
-  onLoginClick: () => void;
-  onSignupClick: () => void;
-  user: any;
-  onLogout: () => void;
-}
-
-export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout }: NavbarProps) => {
+export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -21,7 +14,7 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout }: NavbarPr
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (id: string) => {
+  const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
