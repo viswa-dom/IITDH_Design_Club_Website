@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Hero } from './components/Hero';
 import { Navbar } from './components/Navbar';
 import { LoginModal } from './components/LoginModal';
@@ -12,6 +13,9 @@ const Spirit = lazy(() => import('./components/Spirit').then(module => ({ defaul
 const Interactive = lazy(() => import('./components/Interactive').then(module => ({ default: module.Interactive })));
 const Contact = lazy(() => import('./components/Contact').then(module => ({ default: module.Contact })));
 const Footer = lazy(() => import('./components/Footer').then(module => ({ default: module.Footer })));
+const Profile = lazy(() => import('./components/Profile'));
+const Merch = lazy(() => import('./components/Merch'));
+const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 
 const LoadingSection = () => (
   <div className="min-h-screen flex items-center justify-center bg-black">
@@ -51,68 +55,110 @@ function App() {
   }
 
   return (
-    <div className="bg-black">
-      <Navbar
-        onLoginClick={() => setShowLogin(true)}
-        onSignupClick={() => setShowSignup(true)}
-        user={user}
-        onLogout={handleLogout}
-      />
+    <Router>
+      <div className="bg-black">
+        <Navbar
+          onLoginClick={() => setShowLogin(true)}
+          onSignupClick={() => setShowSignup(true)}
+          user={user}
+          onLogout={handleLogout}
+        />
 
-      <LoginModal
-        isOpen={showLogin}
-        onClose={() => setShowLogin(false)}
-        onLogin={handleLogin}
-        onGoogleSignIn={signInWithGoogle}
-        onSwitchToSignup={switchToSignup}
-      />
+        <LoginModal
+          isOpen={showLogin}
+          onClose={() => setShowLogin(false)}
+          onLogin={handleLogin}
+          onGoogleSignIn={signInWithGoogle}
+          onSwitchToSignup={switchToSignup}
+        />
 
-      <SignupModal
-        isOpen={showSignup}
-        onClose={() => setShowSignup(false)}
-        onSignup={handleSignup}
-        onGoogleSignIn={signInWithGoogle}
-        onSwitchToLogin={switchToLogin}
-      />
+        <SignupModal
+          isOpen={showSignup}
+          onClose={() => setShowSignup(false)}
+          onSignup={handleSignup}
+          onGoogleSignIn={signInWithGoogle}
+          onSwitchToLogin={switchToLogin}
+        />
 
-      <div id="hero">
-        <Hero />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <div id="hero">
+                  <Hero />
+                </div>
+
+                <div id="etymology">
+                  <Suspense fallback={<LoadingSection />}>
+                    <Etymology />
+                  </Suspense>
+                </div>
+
+                <Suspense fallback={<LoadingSection />}>
+                  <Trivia />
+                </Suspense>
+
+                <div id="works">
+                  <Suspense fallback={<LoadingSection />}>
+                    <FeaturedWorks />
+                  </Suspense>
+                </div>
+
+                <Suspense fallback={<LoadingSection />}>
+                  <Spirit />
+                </Suspense>
+
+                <Suspense fallback={<LoadingSection />}>
+                  <Interactive />
+                </Suspense>
+
+                <div id="contact">
+                  <Suspense fallback={<LoadingSection />}>
+                    <Contact />
+                  </Suspense>
+                </div>
+
+                <Suspense fallback={<LoadingSection />}>
+                  <Footer />
+                </Suspense>
+              </>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              user ? (
+                <Suspense fallback={<LoadingSection />}>
+                  <Profile />
+                </Suspense>
+              ) : (
+                <Navigate to="/" />
+              )
+            }
+          />
+
+          <Route
+            path="/merch"
+            element={
+              <Suspense fallback={<LoadingSection />}>
+                <Merch />
+              </Suspense>
+            }
+          />
+
+          <Route
+            path="/forgot-password"
+            element={
+              <Suspense fallback={<LoadingSection />}>
+                <ForgotPassword />
+              </Suspense>
+            }
+          />
+        </Routes>
       </div>
-
-      <div id="etymology">
-        <Suspense fallback={<LoadingSection />}>
-          <Etymology />
-        </Suspense>
-      </div>
-
-      <Suspense fallback={<LoadingSection />}>
-        <Trivia />
-      </Suspense>
-
-      <div id="works">
-        <Suspense fallback={<LoadingSection />}>
-          <FeaturedWorks />
-        </Suspense>
-      </div>
-
-      <Suspense fallback={<LoadingSection />}>
-        <Spirit />
-      </Suspense>
-
-      <Suspense fallback={<LoadingSection />}>
-        <Interactive />
-      </Suspense>
-
-      <div id="contact">
-        <Suspense fallback={<LoadingSection />}>
-          <Contact />
-        </Suspense>
-      </div>
-
-      <Suspense fallback={<LoadingSection />}>
-        <Footer />
-      </Suspense>
-    </div>
+    </Router>
   );
 }
 

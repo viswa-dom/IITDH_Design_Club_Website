@@ -120,7 +120,7 @@ export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup, onGoogl
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-4">
             <p className="text-sm text-gray-600 font-light">
               Don't have an account?{' '}
               <button
@@ -129,6 +129,18 @@ export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup, onGoogl
               >
                 Sign up
               </button>
+            </p>
+            <p className="text-sm text-gray-600 font-light">
+              Forgot your password?{' '}
+              <a
+                href="/forgot-password"
+                onClick={() => {
+                  onClose();
+                }}
+                className="text-black hover:underline font-normal"
+              >
+                Reset it here
+              </a>
             </p>
           </div>
         </div>

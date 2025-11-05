@@ -46,7 +46,7 @@ export const Spirit = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-screen flex items-center justify-center bg-black text-white px-6 py-20 overflow-hidden"
+      className="relative min-h-screen flex items-center justify-center bg-black text-white px-6 py-20"
     >
       <div
         className="absolute inset-0 opacity-10"
@@ -82,7 +82,7 @@ export const Spirit = () => {
           {manifestoLines.map((line, index) => (
             <div
               key={index}
-              className={`overflow-hidden transition-all duration-1000`}
+              className={`transition-all duration-1000`}
               style={{
                 transitionDelay: `${index * 200}ms`,
               }}

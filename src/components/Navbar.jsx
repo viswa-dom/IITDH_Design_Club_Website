@@ -26,6 +26,7 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout }) => {
     { label: 'Home', id: 'hero' },
     { label: 'About', id: 'etymology' },
     { label: 'Works', id: 'works' },
+    { label: 'Merch', id: 'merch' },
     { label: 'Contact', id: 'contact' },
   ];
 
@@ -59,10 +60,13 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout }) => {
 
             {user ? (
               <div className="flex items-center gap-4 ml-4">
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <button
+                  onClick={() => window.location.href = '/profile'}
+                  className="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+                >
                   <User className="w-4 h-4" />
-                  <span className="font-light">{user.email}</span>
-                </div>
+                  <span className="font-light">Profile</span>
+                </button>
                 <button
                   onClick={onLogout}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-light border border-white hover:bg-white hover:text-black transition-all duration-300"
