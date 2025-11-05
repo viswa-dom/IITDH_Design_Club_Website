@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Mail, Lock, AlertCircle } from 'lucide-react';
 
-export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup }) => {
+export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup, onGoogleSignIn }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,6 +21,21 @@ export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup }) => {
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to login. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    if (!onGoogleSignIn) return;
+    setError('');
+    setIsLoading(true);
+    try {
+      await onGoogleSignIn();
+      // OAuth will redirect — close modal as precaution
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Google sign-in failed');
     } finally {
       setIsLoading(false);
     }
@@ -47,6 +62,17 @@ export const LoginModal = ({ isOpen, onClose, onLogin, onSwitchToSignup }) => {
               <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
+
+          <div className="space-y-4 mb-4">
+            <button
+              onClick={handleGoogle}
+              disabled={isLoading}
+              className="w-full py-3 border border-gray-300 flex items-center justify-center gap-3 bg-white text-black font-light hover:bg-gray-50 transition-all duration-300"
+            >
+              {/* Simple Google label; Supabase handles the OAuth flow */}
+              {isLoading ? 'Opening Google...' : 'Continue with Google'}
+            </button>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

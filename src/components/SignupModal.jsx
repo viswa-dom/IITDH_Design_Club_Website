@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 
-export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin }) => {
+export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin, onGoogleSignIn }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -46,6 +46,20 @@ export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin }) => {
     }
   };
 
+  const handleGoogle = async () => {
+    if (!onGoogleSignIn) return;
+    setError('');
+    setIsLoading(true);
+    try {
+      await onGoogleSignIn();
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Google sign-in failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-80 backdrop-blur-sm animate-fadeIn">
       <div className="relative w-full max-w-md bg-white text-black rounded-sm shadow-2xl animate-slideUp">
@@ -74,6 +88,16 @@ export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin }) => {
               <p className="text-sm text-green-800">Account created successfully!</p>
             </div>
           )}
+
+          <div className="space-y-4 mb-4">
+            <button
+              onClick={handleGoogle}
+              disabled={isLoading}
+              className="w-full py-3 border border-gray-300 flex items-center justify-center gap-3 bg-white text-black font-light hover:bg-gray-50 transition-all duration-300"
+            >
+              {isLoading ? 'Opening Google...' : 'Continue with Google'}
+            </button>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

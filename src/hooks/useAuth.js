@@ -40,6 +40,12 @@ export const useAuth = () => {
     return data;
   };
 
+  const signInWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    if (error) throw error;
+    return data;
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -51,5 +57,6 @@ export const useAuth = () => {
     signUp,
     signIn,
     signOut,
+    signInWithGoogle,
   };
 };

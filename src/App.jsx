@@ -20,7 +20,7 @@ const LoadingSection = () => (
 );
 
 function App() {
-  const { user, loading, signIn, signUp, signOut } = useAuth();
+  const { user, loading, signIn, signUp, signOut, signInWithGoogle } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
 
@@ -63,6 +63,7 @@ function App() {
         isOpen={showLogin}
         onClose={() => setShowLogin(false)}
         onLogin={handleLogin}
+        onGoogleSignIn={signInWithGoogle}
         onSwitchToSignup={switchToSignup}
       />
 
@@ -70,6 +71,7 @@ function App() {
         isOpen={showSignup}
         onClose={() => setShowSignup(false)}
         onSignup={handleSignup}
+        onGoogleSignIn={signInWithGoogle}
         onSwitchToLogin={switchToLogin}
       />
 
