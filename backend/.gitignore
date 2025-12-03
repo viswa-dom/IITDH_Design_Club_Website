@@ -1,0 +1,69 @@
+# -------------------------
+# Node Backend
+# -------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Logs
+logs/
+*.log
+*.log.*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Build output
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+.DS_Store
+
+# -------------------------
+# Frontend (React + Vite)
+# -------------------------
+# Dependencies
+frontend/node_modules/
+
+# Dist folder from Vite
+frontend/dist/
+
+# Vercel / Netlify configs (optional)
+.vercel/
+.netlify/
+
+# -------------------------
+# VSCode / IDE
+# -------------------------
+.vscode/
+.idea/
+
+# -------------------------
+# Mac / Windows
+# -------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# Misc
+# -------------------------
+.cache/
+.eslintcache
+.parcel-cache

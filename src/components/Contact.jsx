@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Mail, Instagram, Send } from 'lucide-react';
+import { Mail, Instagram, Send, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 
 export const Contact = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +8,8 @@ export const Contact = () => {
     message: '',
   });
   const [isVisible, setIsVisible] = useState(false);
+  const [status, setStatus] = useState({ type: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -27,10 +29,45 @@ export const Contact = () => {
     return () => observer.disconnect();
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    setFormData({ name: '', email: '', message: '' });
+    setIsSubmitting(true);
+    setStatus({ type: '', message: '' });
+
+    try {
+      // Call your backend API
+      const response = await fetch('http://localhost:5000/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStatus({
+          type: 'success',
+          message: 'Message sent successfully! We\'ll get back to you soon.',
+        });
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        throw new Error(data.message || 'Failed to send message');
+      }
+    } catch (error) {
+      console.error('Email error:', error);
+      setStatus({
+        type: 'error',
+        message: 'Failed to send message. Please try again or email us directly.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -69,6 +106,24 @@ export const Contact = () => {
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
+            {/* Status Messages */}
+            {status.message && (
+              <div
+                className={`p-4 rounded-sm flex items-center gap-3 ${
+                  status.type === 'success'
+                    ? 'bg-green-900 bg-opacity-20 border border-green-700'
+                    : 'bg-red-900 bg-opacity-20 border border-red-700'
+                }`}
+              >
+                {status.type === 'success' ? (
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                )}
+                <p className="text-sm font-light">{status.message}</p>
+              </div>
+            )}
+
             <div>
               <label htmlFor="name" className="block text-sm font-light mb-2 text-gray-400">
                 Name
@@ -80,7 +135,8 @@ export const Contact = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full bg-transparent border-b border-gray-700 focus:border-white py-3 outline-none transition-colors duration-300 font-light"
+                disabled={isSubmitting}
+                className="w-full bg-transparent border-b border-gray-700 focus:border-white py-3 outline-none transition-colors duration-300 font-light disabled:opacity-50"
               />
             </div>
 
@@ -95,7 +151,8 @@ export const Contact = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full bg-transparent border-b border-gray-700 focus:border-white py-3 outline-none transition-colors duration-300 font-light"
+                disabled={isSubmitting}
+                className="w-full bg-transparent border-b border-gray-700 focus:border-white py-3 outline-none transition-colors duration-300 font-light disabled:opacity-50"
               />
             </div>
 
@@ -110,16 +167,27 @@ export const Contact = () => {
                 onChange={handleChange}
                 required
                 rows={4}
-                className="w-full bg-transparent border-b border-gray-700 focus:border-white py-3 outline-none transition-colors duration-300 resize-none font-light"
+                disabled={isSubmitting}
+                className="w-full bg-transparent border-b border-gray-700 focus:border-white py-3 outline-none transition-colors duration-300 resize-none font-light disabled:opacity-50"
               />
             </div>
 
             <button
               type="submit"
-              className="group flex items-center gap-3 px-8 py-3 bg-white text-black font-light hover:bg-gray-200 transition-all duration-300"
+              disabled={isSubmitting}
+              className="group flex items-center gap-3 px-8 py-3 bg-white text-black font-light hover:bg-gray-200 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-sm"
             >
-              Send Message
-              <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+              {isSubmitting ? (
+                <>
+                  Sending...
+                  <Loader className="w-4 h-4 animate-spin" />
+                </>
+              ) : (
+                <>
+                  Send Message
+                  <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                </>
+              )}
             </button>
           </form>
 
@@ -132,11 +200,11 @@ export const Contact = () => {
               <h3 className="text-2xl font-light mb-6">Connect With Us</h3>
               <div className="space-y-4">
                 <a
-                  href="mailto:designclub@iitdh.ac.in"
+                  href="mailto:viswavijeth35@gmail.com"
                   className="flex items-center gap-4 text-gray-400 hover:text-white transition-colors duration-300 group"
                 >
                   <Mail className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
-                  <span className="font-light">designclub@iitdh.ac.in</span>
+                  <span className="font-light">viswavijeth35@gmail.com</span>
                 </a>
 
                 <a
@@ -154,7 +222,7 @@ export const Contact = () => {
             <div className="pt-8 border-t border-gray-800">
               <p className="text-gray-500 font-light leading-relaxed">
                 Whether you're a designer, developer, artist, or simply someone passionate
-                about creativity — we'd love to hear from you.
+                about creativity - we'd love to hear from you.
               </p>
             </div>
           </div>

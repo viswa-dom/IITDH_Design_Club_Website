@@ -11,6 +11,7 @@ create table password_reset_codes (
     used boolean default false
 );
 
+
 -- Create index for faster lookups
 create index if not exists idx_password_reset_codes_email on password_reset_codes(email);
 

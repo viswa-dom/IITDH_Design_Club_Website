@@ -1,0 +1,19 @@
+{
+  "name": "abhikalpa-email-api",
+  "version": "1.0.0",
+  "description": "Email API for Abhikalpa contact form",
+  "main": "emailAPI.js",
+  "scripts": {
+    "start": "node emailAPI.js",
+    "dev": "nodemon emailAPI.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "nodemailer": "^6.10.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

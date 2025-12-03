@@ -1,165 +1,170 @@
-import { lazy, Suspense, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Hero } from './components/Hero';
-import { Navbar } from './components/Navbar';
-import { LoginModal } from './components/LoginModal';
-import { SignupModal } from './components/SignupModal';
-import { useAuth } from './hooks/useAuth';
+import { lazy, Suspense, useState, useEffect } from "react";
+import { HashRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
-const Etymology = lazy(() => import('./components/Etymology').then(module => ({ default: module.Etymology })));
-const Trivia = lazy(() => import('./components/Trivia').then(module => ({ default: module.Trivia })));
-const FeaturedWorks = lazy(() => import('./components/FeaturedWorks').then(module => ({ default: module.FeaturedWorks })));
-const Spirit = lazy(() => import('./components/Spirit').then(module => ({ default: module.Spirit })));
-const Interactive = lazy(() => import('./components/Interactive').then(module => ({ default: module.Interactive })));
-const Contact = lazy(() => import('./components/Contact').then(module => ({ default: module.Contact })));
-const Footer = lazy(() => import('./components/Footer').then(module => ({ default: module.Footer })));
-const Profile = lazy(() => import('./components/Profile'));
-const Merch = lazy(() => import('./components/Merch'));
-const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
+import { Hero } from "./components/Hero";
+import { Navbar } from "./components/Navbar";
+import { LoginModal } from "./components/LoginModal";
+import { SignupModal } from "./components/SignupModal";
+import { useAuth } from "./hooks/useAuth";
+import { CartProvider } from "./components/CartContext";
 
+// Lazy imports
+const Etymology = lazy(() => import("./components/Etymology").then(m => ({ default: m.Etymology })));
+const Trivia = lazy(() => import("./components/Trivia").then(m => ({ default: m.Trivia })));
+const FeaturedWorks = lazy(() => import("./components/FeaturedWorks").then(m => ({ default: m.FeaturedWorks })));
+const Spirit = lazy(() => import("./components/Spirit").then(m => ({ default: m.Spirit })));
+const Interactive = lazy(() => import("./components/Interactive").then(m => ({ default: m.Interactive })));
+const Contact = lazy(() => import("./components/Contact").then(m => ({ default: m.Contact })));
+const Footer = lazy(() => import("./components/Footer").then(m => ({ default: m.Footer })));
+const Profile = lazy(() => import("./components/Profile"));
+const Merch = lazy(() => import("./components/Merch"));
+const Cart = lazy(() => import("./components/Cart"));
+const ResetPassword = lazy(() => import("./components/ResetPassword"));
+
+// Loader
 const LoadingSection = () => (
   <div className="min-h-screen flex items-center justify-center bg-black">
     <div className="animate-pulse text-white text-xl font-light">Loading...</div>
   </div>
 );
 
-function App() {
-  const { user, loading, signIn, signUp, signOut, signInWithGoogle } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
-
-  const handleLogin = async (email, password) => {
-    await signIn(email, password);
-  };
-
-  const handleSignup = async (email, password) => {
-    await signUp(email, password);
-  };
-
-  const handleLogout = async () => {
-    await signOut();
-  };
-
-  const switchToSignup = () => {
-    setShowLogin(false);
-    setShowSignup(true);
-  };
-
-  const switchToLogin = () => {
-    setShowSignup(false);
-    setShowLogin(true);
-  };
-
-  if (loading) {
-    return <LoadingSection />;
-  }
+// App Layout with conditional navbar
+function AppLayout({ children, user, signOut, setShowLogin, setShowSignup }) {
+  const location = useLocation();
+  const hideNavbar = location.pathname === "/reset-password";
 
   return (
-    <Router>
-      <div className="bg-black">
+    <>
+      {!hideNavbar && (
         <Navbar
           onLoginClick={() => setShowLogin(true)}
           onSignupClick={() => setShowSignup(true)}
           user={user}
-          onLogout={handleLogout}
+          onLogout={signOut}
         />
-
-        <LoginModal
-          isOpen={showLogin}
-          onClose={() => setShowLogin(false)}
-          onLogin={handleLogin}
-          onGoogleSignIn={signInWithGoogle}
-          onSwitchToSignup={switchToSignup}
-        />
-
-        <SignupModal
-          isOpen={showSignup}
-          onClose={() => setShowSignup(false)}
-          onSignup={handleSignup}
-          onGoogleSignIn={signInWithGoogle}
-          onSwitchToLogin={switchToLogin}
-        />
-
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <>
-                <div id="hero">
-                  <Hero />
-                </div>
-
-                <div id="etymology">
-                  <Suspense fallback={<LoadingSection />}>
-                    <Etymology />
-                  </Suspense>
-                </div>
-
-                <Suspense fallback={<LoadingSection />}>
-                  <Trivia />
-                </Suspense>
-
-                <div id="works">
-                  <Suspense fallback={<LoadingSection />}>
-                    <FeaturedWorks />
-                  </Suspense>
-                </div>
-
-                <Suspense fallback={<LoadingSection />}>
-                  <Spirit />
-                </Suspense>
-
-                <Suspense fallback={<LoadingSection />}>
-                  <Interactive />
-                </Suspense>
-
-                <div id="contact">
-                  <Suspense fallback={<LoadingSection />}>
-                    <Contact />
-                  </Suspense>
-                </div>
-
-                <Suspense fallback={<LoadingSection />}>
-                  <Footer />
-                </Suspense>
-              </>
-            }
-          />
-
-          <Route
-            path="/profile"
-            element={
-              user ? (
-                <Suspense fallback={<LoadingSection />}>
-                  <Profile />
-                </Suspense>
-              ) : (
-                <Navigate to="/" />
-              )
-            }
-          />
-
-          <Route
-            path="/merch"
-            element={
-              <Suspense fallback={<LoadingSection />}>
-                <Merch />
-              </Suspense>
-            }
-          />
-
-          <Route
-            path="/forgot-password"
-            element={
-              <Suspense fallback={<LoadingSection />}>
-                <ForgotPassword />
-              </Suspense>
-            }
-          />
-        </Routes>
-      </div>
-    </Router>
+      )}
+      {children}
+    </>
   );
 }
 
-export default App;
+export default function App() {
+  const { user, loading, signIn, signUp, signOut, signInWithGoogle } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+
+  // Listen for custom event to open login modal (from password reset)
+  useEffect(() => {
+    const handleOpenLogin = () => {
+      setShowLogin(true);
+    };
+
+    window.addEventListener("open-login", handleOpenLogin);
+    return () => window.removeEventListener("open-login", handleOpenLogin);
+  }, []);
+
+  if (loading) return <LoadingSection />;
+
+  return (
+    <CartProvider>
+      <HashRouter>
+        <AppLayout 
+          user={user} 
+          signOut={signOut} 
+          setShowLogin={setShowLogin}
+          setShowSignup={setShowSignup}
+        >
+
+      {/* LOGIN MODAL (includes ForgotPassword inside) */}
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+        onLogin={signIn}
+        onGoogleSignIn={signInWithGoogle}
+        onSwitchToSignup={() => {
+          setShowLogin(false);
+          setShowSignup(true);
+        }}
+      />
+
+      {/* SIGNUP MODAL */}
+      <SignupModal
+        isOpen={showSignup}
+        onClose={() => setShowSignup(false)}
+        onSignup={signUp}
+        onGoogleSignIn={signInWithGoogle}
+        onSwitchToLogin={() => {
+          setShowSignup(false);
+          setShowLogin(true);
+        }}
+      />
+
+      {/* ALL ROUTES IN ONE ROUTER */}
+      <Routes>
+
+        {/* RESET PASSWORD MUST BE ABOVE "/" */}
+        <Route
+          path="/reset-password"
+          element={
+            <Suspense fallback={<LoadingSection />}>
+              <ResetPassword />
+            </Suspense>
+          }
+        />
+
+        {/* HOME PAGE */}
+        <Route
+          path="/"
+          element={
+            <>
+              <div id="hero"><Hero /></div>
+
+              <div id="etymology">
+                <Suspense fallback={<LoadingSection />}><Etymology /></Suspense>
+              </div>
+
+              <Suspense fallback={<LoadingSection />}><Trivia /></Suspense>
+
+              <div id="works">
+                <Suspense fallback={<LoadingSection />}><FeaturedWorks /></Suspense>
+              </div>
+
+              <Suspense fallback={<LoadingSection />}><Spirit /></Suspense>
+              <Suspense fallback={<LoadingSection />}><Interactive /></Suspense>
+
+              <div id="contact">
+                <Suspense fallback={<LoadingSection />}><Contact /></Suspense>
+              </div>
+
+              <Suspense fallback={<LoadingSection />}><Footer /></Suspense>
+            </>
+          }
+        />
+
+        {/* OTHER ROUTES */}
+        <Route
+          path="/merch"
+          element={<Suspense fallback={<LoadingSection />}><Merch /></Suspense>}
+        />
+
+        <Route
+          path="/cart"
+          element={<Suspense fallback={<LoadingSection />}><Cart /></Suspense>}
+        />
+
+        <Route
+          path="/profile"
+          element={
+            user
+              ? <Suspense fallback={<LoadingSection />}><Profile /></Suspense>
+              : <Navigate to="/" />
+          }
+        />
+
+      </Routes>
+
+      </AppLayout>
+    </HashRouter>
+    </CartProvider>
+  );
+}

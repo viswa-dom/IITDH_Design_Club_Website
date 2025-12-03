@@ -1,269 +1,105 @@
-import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { X, Mail, CheckCircle, AlertCircle } from "lucide-react";
+import { supabase } from "../lib/supabase";
 
-const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
+export default function ForgotPassword({ onClose }) {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1); // 1: Email, 2: Code, 3: New Password
-  const navigate = useNavigate();
 
-  const generateVerificationCode = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  };
-
-  const handleEmailSubmit = async (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setMessage('');
+    setError("");
+    setSent(false);
 
-    try {
-      const code = generateVerificationCode();
-      const { data: existingCodes, error: fetchError } = await supabase
-        .from('password_reset_codes')
-        .select()
-        .eq('email', email)
-        .eq('used', false)
-        .gt('expires_at', new Date().toISOString());
-
-      // Delete any existing valid codes for this email
-      if (existingCodes?.length > 0) {
-        await supabase
-          .from('password_reset_codes')
-          .delete()
-          .eq('email', email);
-      }
-
-      // Insert new code
-      const { error } = await supabase
-        .from('password_reset_codes')
-        .insert([
-          {
-            email,
-            code,
-            created_at: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 3600000).toISOString(), // 1 hour expiry
-            used: false
-          },
-        ]);
-
-      if (error) throw error;
-
-  // NOTE: Sending email should be done server-side. For now we log the code
-  // and surface a friendly message. Replace this with a server endpoint
-  // or Supabase function to actually send the email in production.
-  // eslint-disable-next-line no-console
-  console.log('Password reset code for', email, ':', code);
-
-  setMessage('Verification code generated — check your email (or the console in dev)');
-      setStep(2);
-    } catch (error) {
-      setMessage(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCodeVerification = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage('');
-
-    try {
-      const { data, error } = await supabase
-        .from('password_reset_codes')
-        .select('*')
-        .eq('email', email)
-        .eq('code', verificationCode)
-        .gte('expires_at', new Date().toISOString())
-        .single();
-
-      if (error || !data) {
-        throw new Error('Invalid or expired verification code');
-      }
-
-      setStep(3);
-    } catch (error) {
-      setMessage(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePasswordReset = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage('');
-
-    if (newPassword !== confirmPassword) {
-      setMessage("Passwords don't match");
-      setIsLoading(false);
+    if (!email.trim()) {
+      setError("Please enter a valid email address.");
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/#/reset-password`
       });
 
-      if (error) throw error;
-
-      // Delete the used verification code
-      await supabase
-        .from('password_reset_codes')
-        .delete()
-        .eq('email', email);
-
-      setMessage('Password has been reset successfully');
-      setTimeout(() => navigate('/'), 2000);
-    } catch (error) {
-      setMessage(error.message);
+      if (resetError) {
+        setError(resetError.message);
+      } else {
+        setSent(true);
+      }
+    } catch (err) {
+      setError("Failed to send reset email. Please try again.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <form onSubmit={handleEmailSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {isLoading ? 'Sending...' : 'Send Verification Code'}
-            </button>
-          </form>
-        );
-
-      case 2:
-        return (
-          <form onSubmit={handleCodeVerification} className="space-y-6">
-            <div>
-              <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-                Verification Code
-              </label>
-              <input
-                id="code"
-                name="code"
-                type="text"
-                required
-                maxLength="6"
-                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Enter 6-digit code"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {isLoading ? 'Verifying...' : 'Verify Code'}
-            </button>
-          </form>
-        );
-
-      case 3:
-        return (
-          <form onSubmit={handlePasswordReset} className="space-y-6">
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
-                New Password
-              </label>
-              <input
-                id="newPassword"
-                name="newPassword"
-                type="password"
-                required
-                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Enter new password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm New Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {isLoading ? 'Resetting...' : 'Reset Password'}
-            </button>
-          </form>
-        );
     }
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-white text-black px-6 py-20">
-      <div className="max-w-3xl w-full">
-        <div className="mx-auto max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl md:text-4xl font-light text-gray-900">
-              Reset your password
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              {step === 1 && "We'll send you a verification code"}
-              {step === 2 && "Enter the verification code sent to your email"}
-              {step === 3 && "Create a new password"}
-            </p>
-          </div>
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black bg-opacity-80 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-md bg-white text-black rounded-sm shadow-2xl animate-slideUp">
 
-          {message && (
-            <div
-              className={`p-4 rounded-md ${
-                message.includes('success') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-              }`}
-            >
-              {message}
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-sm transition"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="p-8">
+          <h2 className="text-3xl font-light mb-2">Reset Password</h2>
+          <p className="text-gray-600 font-light mb-6">
+            Enter the email associated with your account.
+          </p>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 flex gap-3 rounded-sm">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
 
-          <div className="bg-white border border-gray-100 shadow-sm rounded-lg p-6">
-            {renderStep()}
-          </div>
+          {/* Success */}
+          {sent && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 flex gap-3 rounded-sm">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <p className="text-sm text-green-800">
+                A password reset link has been sent to your email. Please check your inbox (and spam folder).
+              </p>
+            </div>
+          )}
+
+          {/* Email Input */}
+          <form onSubmit={handleSend} className="space-y-6">
+            <div>
+              <label className="text-sm text-gray-700 font-light block mb-2">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <input
+                  type="email"
+                  className="w-full pl-11 pr-4 py-3 border border-gray-300 focus:border-black focus:outline-none font-light rounded-sm"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-black text-white font-light hover:bg-gray-900 transition-all rounded-sm disabled:opacity-50"
+            >
+              {isLoading ? "Sending..." : "Send Reset Link"}
+            </button>
+          </form>
         </div>
       </div>
-    </section>
+    </div>
   );
-};
-
-export default ForgotPassword;
+}

@@ -58,7 +58,7 @@ export const Etymology = () => {
             <p className="text-lg md:text-xl leading-relaxed text-gray-700 max-w-3xl">
               Derived from Sanskrit, <span className="font-medium">Abhikalpa</span> translates to{' '}
               <span className="italic">imagination</span>, <span className="italic">design</span>, or{' '}
-              <span className="italic">creative concept</span> — the act of envisioning what does not yet exist.
+              <span className="italic">creative concept</span> - the act of envisioning what does not yet exist.
             </p>
           </div>
 
@@ -68,7 +68,7 @@ export const Etymology = () => {
             }`}
           >
             <p className="text-lg md:text-xl leading-relaxed text-gray-700 max-w-3xl">
-              Our club draws from that spirit — turning sparks of imagination into form and function.
+              Our club draws from that spirit - turning sparks of imagination into form and function.
             </p>
           </div>
 
