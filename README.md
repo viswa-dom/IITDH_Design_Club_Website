@@ -204,8 +204,8 @@ This is the official website for Abhikalpa, IIT Dharwad. For contributions or su
 
 ## License
 
-© 2024 Abhikalpa, IIT Dharwad. All rights reserved.
+© 2025 Abhikalpa, IIT Dharwad. All rights reserved.
 
 ---
 
-Made with care by the Abhikalpa design team.
+Made with care by Viswavijeth and Harsh Varshney.
