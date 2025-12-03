@@ -1,110 +1,165 @@
 # Abhikalpa - Design Club Website
 
-Official landing page for Abhikalpa, the Design Club of IIT Dharwad.
+Official landing page and web platform for **Abhikalpa**, the Design Club of IIT Dharwad.
+
+A modern, minimalist landing page with smooth animations, lazy loading, authentication, merch pages, cart system, profile pages, and a backend-powered contact form.
+
+---
 
 ## Overview
 
-A modern, minimalist landing page featuring smooth animations, lazy loading, and user authentication. The site showcases the club's philosophy, design insights, featured works, and provides an interactive design challenge generator.
+A modern web application featuring:
+
+- Smooth animations and scroll reveals
+- Design insights and featured works
+- Interactive design challenge generator
+- Cart system and merchandise section
+- Contact form integrated with backend email API
+- User authentication and profile management
+
+---
 
 ## Features
 
-- **Hero Section** - Bold entrance with interactive cursor effects
-- **Etymology Section** - Beautiful explanation of "Abhikalpa" with scroll animations
-- **Interactive Trivia** - Carousel of design facts and insights
-- **Featured Works** - Grid showcase with hover effects
-- **Spirit Section** - Club manifesto with atmospheric effects
-- **Design Challenge** - Random design prompt generator
-- **Contact Form** - Get in touch with the club
-- **User Authentication** - Sign up and login functionality
-- **Responsive Design** - Optimized for all screen sizes
+### Frontend
+
+- **Hero Section** with cursor reactive animations
+- **Etymology Section** with scroll-triggered effects
+- **Trivia Carousel** for design facts
+- **Featured Works** grid with hover animations
+- **Spirit Section** showcasing club manifesto
+- **Design Challenge Generator**
+- **Contact Form** with backend integration
+- **User Authentication** (Login, Signup, Logout)
+- **Reset Password System**
+- **Merch Page + Cart System (CartContext)**
+- **Responsive Layout** across all devices
+- **Lazy Loading + Optimized Animations**
+
+### Backend
+
+- **Node.js + Express API**
+- **Nodemailer email service**
+- **HTML-styled email templates**
+- **CORS + JSON middleware**
+- **Environment variable support via `.env`**
+- **Healthcheck endpoint**
+
+---
 
 ## Tech Stack
 
-- **React** - UI framework
-- **JavaScript** - Project converted to plain JavaScript (JSX)
-- **Vite** - Build tool and dev server
-- **Tailwind CSS** - Styling
-- **Supabase** - Authentication and database
-- **Lucide React** - Icons
+### Frontend
+- React
+- Vite
+- Tailwind CSS
+- JavaScript (JSX)
+- Lucide Icons
 
-## Prerequisites
+### Backend
+- Node.js
+- Express
+- Nodemailer
+- dotenv
+
+### Database (Future)
+- SQL schema included in `/database/schema.sql`
+
+---
+
+## Requirements
 
 - Node.js (v16 or higher)
-- npm or yarn
+- npm
+- Git
+- Gmail account with **App Password enabled**
+
+---
+
+## Environment Variables
+
+Create a `.env` file at the project root:
+
+- EMAIL_USER=yourgmail@gmail.com
+- EMAIL_PASS=your-gmail-app-password
+- PORT=5000
+
+
+`.env` is ignored by Git for security reasons.
+
+---
+
+## Gmail App Password Setup
+
+1. Go to: https://myaccount.google.com
+2. Navigate to **Security**
+3. Enable **2-Step Verification**
+4. Open **App Passwords**
+5. Select:
+ - App: Mail
+ - Device: Other
+6. Generate password
+7. Use it as `EMAIL_PASS` in `.env`
+
+---
 
 ## Installation
 
-1. Clone the repository:
+### 1. Clone the Repository
+
 ```bash
-git clone <repository-url>
-cd project
+git clone https://github.com/viswa-dom/IITDH_Design_Club_Website
+cd IITDH_Design_Club_Website
+
 ```
 
-2. Install dependencies:
+### 2. Frotnend Setup
+
 ```bash
 npm install
-```
-
-3. The environment variables are already configured in `.env`:
-```
-VITE_SUPABASE_URL=<your-supabase-url>
-VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
-```
-
-## Running the Site
-
-### Development Mode
-
-Start the development server:
-```bash
 npm run dev
 ```
 
-The site will be available at `http://localhost:5173`
-
-### Production Build
-
-Build the site for production:
+- Frontend available at:
 ```bash
-npm run build
+http://localhost:5173
 ```
 
-Preview the production build:
+### 3. Backend Setup
 ```bash
-npm run preview
+cd backend
+npm install
+npm run dev
 ```
-
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint` - Run ESLint
-
+- Verify that backend is working:
+```bash
+[nodemon] starting `node emailAPI.js`
+Email API server running on port 5000
+Email server is ready to send messages
+```
 ## Project Structure
 
 ```
 src/
-├── components/        # React components
-│   ├── Hero.jsx
-│   ├── Navbar.jsx
-│   ├── Etymology.jsx
-│   ├── Trivia.jsx
-│   ├── FeaturedWorks.jsx
-│   ├── Spirit.jsx
-│   ├── Interactive.jsx
-│   ├── Contact.jsx
-│   ├── Footer.jsx
-│   ├── LoginModal.jsx
-│   └── SignupModal.jsx
-├── hooks/            # Custom React hooks
-│   └── useAuth.js
-├── lib/              # Utilities and libraries
-│   └── supabase.js
-├── App.jsx           # Main app component
-├── main.jsx          # Entry point
-└── index.css         # Global styles
+├── components/# React components
+│ ├── Hero.jsx
+│ ├── Navbar.jsx
+│ ├── Etymology.jsx
+│ ├── Trivia.jsx
+│ ├── FeaturedWorks.jsx
+│ ├── Spirit.jsx
+│ ├── Interactive.jsx
+│ ├── Contact.jsx
+│ ├── Footer.jsx
+│ ├── LoginModal.jsx
+│ └── SignupModal.jsx
+├── hooks/# Custom React hooks
+│ └── useAuth.js
+├── lib/# Utilities and libraries
+│ └── supabase.js
+├── App.jsx # Main app component
+├── main.jsx# Entry point
+└── index.css # Global styles
 ```
 
 ## Authentication
