@@ -63,6 +63,12 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
     }
   };
 
+  const handleCartClick = () => {
+    navigate('/cart');
+    setIsMobileMenuOpen(false);
+  };
+
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -90,6 +96,15 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                 {link.label}
               </button>
             ))}
+            {user && (
+              <button
+                onClick={handleCartClick}
+                className="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300 uppercase tracking-wider"
+              >
+                Your Cart
+              </button>
+            )}
+
 
             {/* Hide ALL auth buttons if hideAuthUI is true */}
             {!hideAuthUI && (
@@ -150,6 +165,15 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                 {link.label}
               </button>
             ))}
+            {user && (
+              <button
+                onClick={handleCartClick}
+                className="block w-full text-left text-sm font-light text-gray-400 hover:text-white transition-colors duration-300 uppercase tracking-wider"
+              >
+                Your Cart
+              </button>
+            )}
+
 
             {/* Hide ALL mobile auth UI if hideAuthUI is true */}
             {!hideAuthUI && (
