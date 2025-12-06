@@ -5,28 +5,24 @@ export const config = {
 };
 
 export default async function handler(req) {
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ success: false, message: "POST only" }),
+      { status: 405, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const body = await req.json();
     const { name, email, message } = body;
 
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const htmlTemplate = `
-      <html>
-        <body>
-          <h2>New Contact Form Submission</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Message:</strong> ${message}</p>
-        </body>
-      </html>
-    `;
-
     await resend.emails.send({
       from: "Abhikalpa <onboarding@resend.dev>",
       to: "viswavijeth35@gmail.com",
       subject: `Message from ${name}`,
-      html: htmlTemplate,
+      html: `<p>${message}</p>`,
       reply_to: email,
     });
 
