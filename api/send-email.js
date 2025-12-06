@@ -25,7 +25,7 @@ export default async function handler(req) {
       html: `<p>${message}</p>`,
       reply_to: email,
     });
-
+    console.log("RESEND_API_KEY:", process.env.RESEND_API_KEY);
     return new Response(
       JSON.stringify({ success: true }),
       { status: 200, headers: { "Content-Type": "application/json" } }
