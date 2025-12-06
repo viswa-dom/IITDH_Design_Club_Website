@@ -1,54 +1,43 @@
-const { Resend } = require("resend");
+import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const config = {
+  runtime: "edge",
+};
 
-module.exports = async (req, res) => {
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      success: false,
-      message: "Method not allowed",
-    });
-  }
-
-  const { name, email, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({
-      success: false,
-      message: "All fields are required",
-    });
-  }
-
-  const htmlTemplate = `
-    <html>
-    <body>
-      <h2>New Contact Form Submission</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Message:</strong> ${message}</p>
-    </body>
-    </html>
-  `;
-
+export default async function handler(req) {
   try {
+    const body = await req.json();
+    const { name, email, message } = body;
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    const htmlTemplate = `
+      <html>
+        <body>
+          <h2>New Contact Form Submission</h2>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Message:</strong> ${message}</p>
+        </body>
+      </html>
+    `;
+
     await resend.emails.send({
       from: "Abhikalpa <onboarding@resend.dev>",
       to: "viswavijeth35@gmail.com",
-      subject: `New Contact Form Submission from ${name}`,
+      subject: `Message from ${name}`,
       html: htmlTemplate,
       reply_to: email,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "Email sent successfully",
-    });
+    return new Response(
+      JSON.stringify({ success: true }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
   } catch (error) {
-    console.error("Resend error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to send email",
-      error: error.message,
-    });
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
-};
+}
