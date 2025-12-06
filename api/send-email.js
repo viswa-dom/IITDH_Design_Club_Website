@@ -1,20 +1,17 @@
 import { Resend } from "resend";
 
-export const config = {
-  runtime: "edge",
-};
+// Remove or comment out this - it's causing the error
+// export const config = {
+//   runtime: "edge",
+// };
 
-export default async function handler(req) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ success: false, message: "POST only" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
-    );
+    return res.status(405).json({ success: false, message: "POST only" });
   }
 
   try {
-    const body = await req.json();
-    const { name, email, message } = body;
+    const { name, email, message } = req.body;
 
     const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -25,15 +22,11 @@ export default async function handler(req) {
       html: `<p>${message}</p>`,
       reply_to: email,
     });
-    console.log("RESEND_API_KEY:", process.env.RESEND_API_KEY);
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    
+    console.log("Email sent successfully");
+    return res.status(200).json({ success: true });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    console.error("Error:", error.message);
+    return res.status(500).json({ success: false, error: error.message });
   }
 }
