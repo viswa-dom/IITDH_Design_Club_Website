@@ -36,7 +36,7 @@ export const Contact = () => {
 
     try {
       // Call your backend API
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/backend/api/send-email`, {
+      const response = await fetch("/api/send-email", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
