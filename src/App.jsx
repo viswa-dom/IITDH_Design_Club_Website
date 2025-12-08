@@ -78,7 +78,7 @@ export default function App() {
 
   return (
     <CartProvider>
-      <BroswerRouter>
+      <BrowserRouter>
         <AppLayout 
           user={user} 
           signOut={signOut} 
@@ -180,7 +180,7 @@ export default function App() {
       </Routes>
 
       </AppLayout>
-    </BroswerRouter>
+    </BrowserRouter>
     </CartProvider>
   );
 }
