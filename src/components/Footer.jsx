@@ -1,4 +1,5 @@
 import { Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const Footer = () => {
   return (
@@ -61,6 +62,50 @@ export const Footer = () => {
               </a>
             </div>
           </div>
+
+          <div>
+            <h4 className="text-sm uppercase tracking-widest text-gray-500 mb-4">
+              Policies
+            </h4>
+
+            <div className="space-y-2 text-sm font-light">
+              <Link
+                to="/cancellation-refund"
+                className="block text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                Cancellation & Refund
+              </Link>
+
+              <Link
+                to="/contact-us"
+                className="block text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                Contact Us
+              </Link>
+
+              <Link
+                to="/privacy-policy"
+                className="block text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                Privacy Policy
+              </Link>
+
+              <Link
+                to="/terms-and-conditions"
+                className="block text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                Terms & Conditions
+              </Link>
+
+              <Link
+                to="/shipping-policy"
+                className="block text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                Shipping Policy
+              </Link>
+            </div>
+          </div>
+
         </div>
 
         <div className="pt-8 border-t border-gray-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">

@@ -8,6 +8,12 @@ import { SignupModal } from "./components/SignupModal";
 import { useAuth } from "./hooks/useAuth";
 import { CartProvider } from "./components/CartContext";
 
+import CancellationRefund from "./policy-pages/CancellationRefund";
+import ContactUs from "./policy-pages/ContactUs";
+import PrivacyPolicy from "./policy-pages/PrivacyPolicy";
+import TermsConditions from "./policy-pages/TermsConditions";
+import ShippingPolicy from "./policy-pages/ShippingPolicy";
+
 // Lazy imports
 const Etymology = lazy(() => import("./components/Etymology").then(m => ({ default: m.Etymology })));
 const Trivia = lazy(() => import("./components/Trivia").then(m => ({ default: m.Trivia })));
@@ -20,6 +26,7 @@ const Profile = lazy(() => import("./components/Profile"));
 const Merch = lazy(() => import("./components/Merch"));
 const Cart = lazy(() => import("./components/Cart"));
 const ResetPassword = lazy(() => import("./components/ResetPassword"));
+
 
 // Loader
 const LoadingSection = () => (
@@ -44,6 +51,10 @@ function AppLayout({ children, user, signOut, setShowLogin, setShowSignup }) {
         />
       )}
       {children}
+
+      <Suspense fallback={<div />}>
+        <Footer />
+      </Suspense>
     </>
   );
 }
@@ -135,8 +146,6 @@ export default function App() {
               <div id="contact">
                 <Suspense fallback={<LoadingSection />}><Contact /></Suspense>
               </div>
-
-              <Suspense fallback={<LoadingSection />}><Footer /></Suspense>
             </>
           }
         />
@@ -160,6 +169,13 @@ export default function App() {
               : <Navigate to="/" />
           }
         />
+
+        <Route path="/cancellation-refund" element={<CancellationRefund />} />
+        <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsConditions />} />
+        <Route path="/shipping-policy" element={<ShippingPolicy />} />
+
 
       </Routes>
 
