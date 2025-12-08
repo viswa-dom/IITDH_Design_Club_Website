@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package } from "lucide-react";
 import { useCart } from "./CartContext";
+import { QRCode } from "qrcode.react";
+import { useState } from "react";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -17,10 +19,13 @@ export default function Cart() {
   const shipping = subtotal > 999 ? 0 : 50; // Free shipping over ₹999
   const tax = Math.round(subtotal * 0.18); // 18% GST
   const total = subtotal + shipping + tax;
+  const [showQR, setShowQR] = useState(false);
 
   const handleCheckout = () => {
     // TODO: Implement checkout logic
-    alert("Checkout functionality coming soon!");
+    // alert("Checkout functionality coming soon!");
+    if (total <= 0) return;
+    setShowQR(true);
   };
 
   return (
@@ -208,6 +213,32 @@ export default function Cart() {
           )}
         </div>
       </section>
+      {showQR && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center px-4">
+        <div className="bg-white text-black rounded-sm p-6 shadow-2xl w-full max-w-sm">
+          <h2 className="text-2xl font-light mb-4 text-center">Scan to Pay</h2>
+  
+          {/* QR Code */}
+          <div className="flex justify-center mb-4">
+            <QRCode
+              value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${total}&cu=INR&tn=Merch Purchase`}
+              size={200}
+            />
+          </div>
+  
+          <p className="text-center text-gray-600 mb-4 font-light">
+            Total Amount: ₹{total}
+          </p>
+  
+          <button
+            onClick={() => setShowQR(false)}
+            className="w-full py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+      )}
     </div>
   );
 }
