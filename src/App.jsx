@@ -26,6 +26,7 @@ const Profile = lazy(() => import("./components/Profile"));
 const Merch = lazy(() => import("./components/Merch"));
 const Cart = lazy(() => import("./components/Cart"));
 const ResetPassword = lazy(() => import("./components/ResetPassword"));
+const Confirmation = lazy(() => import("./components/OrderConfirmation"));
 
 
 // Loader
@@ -169,6 +170,8 @@ export default function App() {
               : <Navigate to="/" />
           }
         />
+
+        <Route path="/confirmation" element={<Confirmation />} />
 
         <Route path="/cancellation-refund" element={<CancellationRefund />} />
         <Route path="/contact-us" element={<ContactUs />} />

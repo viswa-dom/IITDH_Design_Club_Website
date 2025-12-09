@@ -3,6 +3,7 @@ import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package } from "lucide-re
 import { useCart } from "./CartContext";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
+import { useRef } from "react";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ export default function Cart() {
   const tax = Math.round(subtotal * 0.18); // 18% GST
   const total = subtotal + shipping + tax;
   const [showQR, setShowQR] = useState(false);
+  const iframeRef = useRef(null);
+
 
   const handleCheckout = () => {
     // TODO: Implement checkout logic
@@ -229,6 +232,32 @@ export default function Cart() {
           <p className="text-center text-gray-600 mb-4 font-light">
             Total Amount: ₹{total}
           </p>
+
+          {/* Google Form */}
+          <div className="mt-6">
+            <div className="relative">
+              <iframe
+                ref={iframeRef}
+                onLoad={() => {
+                  const iframe = iframeRef.current;
+                  if (!iframe) return;
+
+                  try {
+                    const url = iframe.contentWindow.location.href;
+                    // When the form is submitted, URL contains "formResponse"
+                    if (url.includes("formResponse")) {
+                      navigate("/confirmation");
+                    }
+                  } catch (e) {
+                    // Ignore cross-origin errors (normal)
+                  }
+                }}
+                src="https://docs.google.com/forms/d/e/1FAIpQLSc5J91_s9f-MMi0krfTXYxCkp-T8ND75UxUg1Uwop8JPfiBSw/viewform?embedded=true"
+                className="w-full h-[700px] rounded-sm"
+              ></iframe>
+            </div>
+          </div>
+
   
           <button
             onClick={() => setShowQR(false)}

@@ -208,7 +208,7 @@ export const Contact = () => {
                 </a>
 
                 <a
-                  href="https://instagram.com/abhikalpa.iitdh"
+                  href="https://instagram.com/design_iitdh"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-4 text-gray-400 hover:text-white transition-colors duration-300 group"
