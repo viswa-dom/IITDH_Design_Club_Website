@@ -233,32 +233,22 @@ export default function Cart() {
             Total Amount: ₹{total}
           </p>
 
-          {/* Google Form */}
-          <div className="mt-6">
-            <div className="relative">
-              <iframe
-                ref={iframeRef}
-                onLoad={() => {
-                  const iframe = iframeRef.current;
-                  if (!iframe) return;
+          {/* Google Form Link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600 mb-3 font-light">
+              To confirm your order, please fill out this Google Form after payment:
+            </p>
 
-                  try {
-                    const url = iframe.contentWindow.location.href;
-                    // When the form is submitted, URL contains "formResponse"
-                    if (url.includes("formResponse")) {
-                      navigate("/confirmation");
-                    }
-                  } catch (e) {
-                    // Ignore cross-origin errors (normal)
-                  }
-                }}
-                src="https://docs.google.com/forms/d/e/1FAIpQLSc5J91_s9f-MMi0krfTXYxCkp-T8ND75UxUg1Uwop8JPfiBSw/viewform?embedded=true"
-                className="w-full h-[700px] rounded-sm"
-              ></iframe>
-            </div>
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSc5J91_s9f-MMi0krfTXYxCkp-T8ND75UxUg1Uwop8JPfiBSw/viewform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-4 py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
+            >
+              Open Google Form
+            </a>
           </div>
 
-  
           <button
             onClick={() => setShowQR(false)}
             className="w-full py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
