@@ -243,7 +243,6 @@ export default function Cart() {
               href="https://docs.google.com/forms/d/e/1FAIpQLSc5J91_s9f-MMi0krfTXYxCkp-T8ND75UxUg1Uwop8JPfiBSw/viewform"
               target="_blank"
               rel="noopener noreferrer"
-              style="margin-bottom: 10px;"
               className="inline-block px-4 py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
             >
               Open Google Form
