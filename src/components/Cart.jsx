@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package } from "lucide-react";
 import { useCart } from "./CartContext";
-import { QRCode } from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 
 export default function Cart() {
@@ -220,7 +220,7 @@ export default function Cart() {
   
           {/* QR Code */}
           <div className="flex justify-center mb-4">
-            <QRCode
+            <QRCodeSVG
               value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${total}&cu=INR&tn=Merch Purchase`}
               size={200}
             />
@@ -242,15 +242,3 @@ export default function Cart() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
