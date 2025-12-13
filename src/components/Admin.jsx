@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 export default function Admin() {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading } = useAuth();
+  const isAdmin = user?.app_metadata?.role === 'admin';
   const navigate = useNavigate();
 
   useEffect(() => {
