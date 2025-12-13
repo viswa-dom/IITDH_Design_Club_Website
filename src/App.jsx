@@ -27,7 +27,7 @@ const Merch = lazy(() => import("./components/Merch"));
 const Cart = lazy(() => import("./components/Cart"));
 const ResetPassword = lazy(() => import("./components/ResetPassword"));
 const Confirmation = lazy(() => import("./components/OrderConfirmation"));
-
+const Admin = lazy(() => import("./components/Admin"));
 
 // Loader
 const LoadingSection = () => (
