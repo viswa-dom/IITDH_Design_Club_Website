@@ -70,6 +70,10 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
     setIsMobileMenuOpen(false);
   };
 
+  console.log('USER:', user);
+  console.log('ADMIN?', isAdmin);
+
+
 
   return (
     <nav
