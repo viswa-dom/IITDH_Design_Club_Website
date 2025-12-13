@@ -69,11 +69,6 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
     setIsMobileMenuOpen(false);
   };
 
-  console.log('USER:', user);
-  console.log('ADMIN?', isAdmin);
-
-
-
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -104,7 +99,7 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
             {isAdmin && (
               <button
                 onClick={() => navigate('/admin')}
-                className="text-sm font-light text-red-400 hover:text-red-300 transition-colors duration-300 uppercase tracking-wider"
+                className="text-sm font-light text-gray-400 hover:text-red-300 transition-colors duration-300 uppercase tracking-wider"
               >
                 Admin
               </button>
