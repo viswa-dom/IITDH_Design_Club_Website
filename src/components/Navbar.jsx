@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
 
 export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const isAdmin = user?.app_metadata?.role === 'admin';
 
   useEffect(() => {
     const handleScroll = () => {
