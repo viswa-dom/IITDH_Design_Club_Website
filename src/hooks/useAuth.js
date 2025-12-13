@@ -11,10 +11,10 @@ export const useAuth = () => {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      (async () => {
-        setUser(session?.user ?? null);
-      })();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
@@ -27,7 +27,8 @@ export const useAuth = () => {
       options: {
         data: {
           username,
-          phone
+          phone,
+          role: "user" // 👈 default role
         }
       }
     });
@@ -47,7 +48,13 @@ export const useAuth = () => {
   };
 
   const signInWithGoogle = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
     if (error) throw error;
     return data;
   };
@@ -57,9 +64,12 @@ export const useAuth = () => {
     if (error) throw error;
   };
 
+  const isAdmin = user?.user_metadata?.role === "admin";
+
   return {
     user,
     loading,
+    isAdmin,
     signUp,
     signIn,
     signOut,

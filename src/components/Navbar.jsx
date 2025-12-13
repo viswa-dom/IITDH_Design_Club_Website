@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -96,6 +98,14 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                 {link.label}
               </button>
             ))}
+            {isAdmin && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="text-sm font-light text-red-400 hover:text-red-300 transition-colors duration-300 uppercase tracking-wider"
+              >
+                Admin
+              </button>
+            )}
             {user && (
               <button
                 onClick={handleCartClick}
@@ -165,6 +175,17 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                 {link.label}
               </button>
             ))}
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  navigate('/admin');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left text-sm font-light text-red-400 hover:text-red-300 transition-colors duration-300 uppercase tracking-wider"
+              >
+                Admin
+              </button>
+            )}
             {user && (
               <button
                 onClick={handleCartClick}

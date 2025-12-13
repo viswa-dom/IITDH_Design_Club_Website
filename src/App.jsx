@@ -171,6 +171,8 @@ export default function App() {
           }
         />
 
+        <Route path="/admin" element={<Admin />} />
+
         <Route path="/confirmation" element={<Confirmation />} />
 
         <Route path="/cancellation-refund" element={<CancellationRefund />} />
