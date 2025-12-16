@@ -1,48 +1,98 @@
-import { useState, useEffect, useRef } from 'react';
-import { Sparkles } from 'lucide-react';
-
-const prompts = [
-  'Design a poster using only triangles',
-  'Make a logo without using text',
-  'Create a layout with circles only',
-  'Design using just two colors',
-  'Build a composition with typography alone',
-  'Create harmony using asymmetry',
-  'Design with negative space',
-  'Make something beautiful with a single line',
-];
+import { useState, useEffect, useRef } from "react";
+import { Sparkles } from "lucide-react";
 
 export const Interactive = () => {
-  const [currentPrompt, setCurrentPrompt] = useState('');
+  const [prompts, setPrompts] = useState([]);
+  const [currentPrompt, setCurrentPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
+      ([entry]) => entry.isIntersecting && setIsVisible(true),
       { threshold: 0.3 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
+    if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
   }, []);
 
-  const generatePrompt = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-      setCurrentPrompt(randomPrompt);
-      setIsGenerating(false);
-    }, 800);
-  };
+const generateAIPrompt = async () => {
+  if (isGenerating) return;
+  setIsGenerating(true);
+
+  try {
+    const seed = Math.floor(Math.random() * 1_000_000);
+    const styles = [
+      "use a physical constraint",
+      "use a philosophical paradox",
+      "use a sensory limitation",
+      "use a mathematical rule",
+      "use an emotional contradiction",
+      "use a temporal constraint",
+      "use a spatial impossibility"
+    ];
+
+    const style = styles[Math.floor(Math.random() * styles.length)];
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 50,
+        temperature: 1.35,
+        top_p: 0.9,
+        messages: [
+          {
+            role: "user",
+            content: `
+Seed: ${seed}
+Directive: ${style}
+
+Generate ONE design challenge.
+
+Rules:
+- Under 12 words
+- No logos, posters, brands, typography
+- Avoid symmetry, minimalism, balance clichés
+- Must feel unlike typical design prompts
+- Output ONLY the prompt text
+`
+          }
+        ],
+      }),
+    });
+
+    const data = await res.json();
+    const newPrompt = data?.content?.[0]?.text?.trim();
+
+    if (!newPrompt) throw new Error("Empty response");
+
+    setCurrentPrompt(newPrompt);
+    setPrompts(p => [...p, newPrompt]);
+
+  } catch {
+    const fallback = [
+      "Design certainty using only ambiguity",
+      "Create order without repetition",
+      "Communicate motion in a static medium",
+      "Design warmth without color",
+      "Express scale using identical elements",
+    ][Math.floor(Math.random() * 5)];
+
+    setCurrentPrompt(fallback);
+    setPrompts(p => [...p, fallback]);
+  }
+
+  setIsGenerating(false);
+};
+
 
   return (
     <section
@@ -52,7 +102,7 @@ export const Interactive = () => {
       <div className="max-w-4xl mx-auto w-full text-center">
         <h2
           className={`text-4xl md:text-6xl font-light mb-8 transition-all duration-1000 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >
           Design Challenge
@@ -60,41 +110,42 @@ export const Interactive = () => {
 
         <p
           className={`text-lg md:text-xl text-gray-600 mb-16 font-light transition-all duration-1000 delay-200 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >
-          Need inspiration? Generate a random design prompt
+          Generate AI-powered prompts to push creative boundaries
         </p>
 
         <div
           className={`transition-all duration-1000 delay-400 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >
           <div className="min-h-[200px] flex items-center justify-center mb-12 bg-gray-50 rounded-sm p-8 border border-gray-200">
             {currentPrompt ? (
               <p
-                className={`text-2xl md:text-4xl font-light transition-all duration-500 ${
-                  isGenerating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                key={currentPrompt}
+                className={`text-2xl md:text-4xl font-light transition-all duration-300 ${
+                  isGenerating ? "opacity-0 scale-95" : "opacity-100 scale-100"
                 }`}
               >
-                "{currentPrompt}"
+                “{currentPrompt}”
               </p>
             ) : (
               <p className="text-xl md:text-2xl text-gray-400 font-light">
-                Click below to get started
+                Click below to generate a prompt
               </p>
             )}
           </div>
 
           <button
-            onClick={generatePrompt}
+            onClick={generateAIPrompt}
             disabled={isGenerating}
             className="group relative px-12 py-4 bg-black text-white font-light text-lg hover:bg-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
           >
             <span className="relative z-10 flex items-center gap-3">
-              <Sparkles className="w-5 h-5" />
-              {isGenerating ? 'Generating...' : 'Generate Prompt'}
+              <Sparkles className={`w-5 h-5 ${isGenerating ? "animate-spin" : ""}`} />
+              {isGenerating ? "Generating..." : "Generate Prompt"}
             </span>
             <div className="absolute inset-0 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 opacity-10" />
           </button>
@@ -102,14 +153,10 @@ export const Interactive = () => {
 
         <div
           className={`mt-20 text-sm text-gray-500 font-light transition-all duration-1000 delay-600 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >
-          <p>
-            These prompts are designed to push creative boundaries
-            <br />
-            and explore unconventional design thinking
-          </p>
+          AI-driven challenges for unconventional design thinking
         </div>
       </div>
     </section>

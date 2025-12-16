@@ -53,3 +53,4 @@ Thumbs.db
 # -------------------------
 .bolt/
 .vercel
+.env*.local
