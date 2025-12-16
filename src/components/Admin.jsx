@@ -1,22 +1,4 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-
 export default function Admin() {
-  const { user, loading } = useAuth();
-  const isAdmin = user?.app_metadata?.role === 'admin';
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading) {
-      if (!user || !isAdmin) {
-        navigate("/");
-      }
-    }
-  }, [user, isAdmin, loading, navigate]);
-
-  if (loading) return null;
-
   return (
     <div className="min-h-screen bg-black text-white">
       <section className="pt-32 pb-12 px-6">
