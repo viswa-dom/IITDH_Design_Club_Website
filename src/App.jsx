@@ -50,17 +50,11 @@ const Footer = lazy(() =>
   import("./components/Footer").then(m => ({ default: m.Footer }))
 );
 
-const Profile = lazy(() =>
-  import("./components/Profile").then(m => ({ default: m.Profile }))
-);
+const Profile = lazy(() => import("./components/Profile"));
 
-const Merch = lazy(() =>
-  import("./components/Merch").then(m => ({ default: m.Merch }))
-);
+const Merch = lazy(() => import("./components/Merch"));
 
-const Cart = lazy(() =>
-  import("./components/Cart").then(m => ({ default: m.Cart }))
-);
+const Cart = lazy(() => import("./components/Cart"));
 
 const ResetPassword = lazy(() =>
   import("./components/ResetPassword").then(m => ({ default: m.ResetPassword }))
