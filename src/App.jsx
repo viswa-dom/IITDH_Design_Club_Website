@@ -74,6 +74,11 @@ const Admin = lazy(() =>
   import("./components/Admin").then(m => ({ default: m.default || m.Admin }))
 );
 
+const AdminUsers = lazy(() =>
+  import("./components/AdminUsers").then(m => ({ default: m.default }))
+);
+
+
 
 // Loader
 const LoadingSection = () => (
@@ -260,7 +265,17 @@ export default function App() {
                   </Suspense>
                 }
               />
+
+              <Route
+                path="/admin/users"
+                element={
+                  <Suspense fallback={<LoadingSection />}>
+                    <AdminUsers />
+                  </Suspense>
+                }
+              />
             </Route>
+
 
             {/* CONFIRMATION */}
             <Route path="/confirmation" element={<Confirmation />} />
