@@ -34,16 +34,46 @@ const FeaturedWorks = lazy(() =>
     default: m.FeaturedWorks,
   }))
 );
-const Spirit = lazy(() => import("./components/Spirit"));
-const Interactive = lazy(() => import("./components/Interactive"));
-const Contact = lazy(() => import("./components/Contact"));
-const Footer = lazy(() => import("./components/Footer"));
-const Profile = lazy(() => import("./components/Profile"));
-const Merch = lazy(() => import("./components/Merch"));
-const Cart = lazy(() => import("./components/Cart"));
-const ResetPassword = lazy(() => import("./components/ResetPassword"));
-const Confirmation = lazy(() => import("./components/OrderConfirmation"));
-const Admin = lazy(() => import("./components/Admin"));
+const Spirit = lazy(() =>
+  import("./components/Spirit").then(m => ({ default: m.Spirit }))
+);
+
+const Interactive = lazy(() =>
+  import("./components/Interactive").then(m => ({ default: m.Interactive }))
+);
+
+const Contact = lazy(() =>
+  import("./components/Contact").then(m => ({ default: m.Contact }))
+);
+
+const Footer = lazy(() =>
+  import("./components/Footer").then(m => ({ default: m.Footer }))
+);
+
+const Profile = lazy(() =>
+  import("./components/Profile").then(m => ({ default: m.Profile }))
+);
+
+const Merch = lazy(() =>
+  import("./components/Merch").then(m => ({ default: m.Merch }))
+);
+
+const Cart = lazy(() =>
+  import("./components/Cart").then(m => ({ default: m.Cart }))
+);
+
+const ResetPassword = lazy(() =>
+  import("./components/ResetPassword").then(m => ({ default: m.ResetPassword }))
+);
+
+const Confirmation = lazy(() =>
+  import("./components/OrderConfirmation").then(m => ({ default: m.OrderConfirmation }))
+);
+
+const Admin = lazy(() =>
+  import("./components/Admin").then(m => ({ default: m.default || m.Admin }))
+);
+
 
 // Loader
 const LoadingSection = () => (
