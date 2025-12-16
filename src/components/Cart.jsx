@@ -3,7 +3,7 @@ import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package } from "lucide-re
 import { useCart } from "./CartContext";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -14,6 +14,10 @@ export default function Cart() {
     clearCart,
     getCartTotal 
   } = useCart();
+
+  useEffect(() => {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }, []);
 
   const cartItems = getCartItems();
   const subtotal = getCartTotal();

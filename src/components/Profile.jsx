@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Package, ShoppingBag, User, Mail, Phone, UserCircle } from 'lucide-react';
@@ -6,6 +6,10 @@ import { Package, ShoppingBag, User, Mail, Phone, UserCircle } from 'lucide-reac
 const Profile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }, []);
 
   // Mock data for orders (replace with actual data from backend later)
   const mockOrders = [

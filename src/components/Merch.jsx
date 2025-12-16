@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Upload, Plus, Minus } from "lucide-react";
 import { useCart } from "./CartContext";
@@ -6,6 +6,10 @@ import { useCart } from "./CartContext";
 export default function Merch() {
   const navigate = useNavigate();
   const { cart, addToCart, removeFromCart, getCartCount, getCartTotal } = useCart();
+
+  useEffect(() => {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }, []);
 
   const [merchItems] = useState([
     { id: 1, name: "Club T-Shirt", price: 499, image: null, description: "Premium cotton blend" },
