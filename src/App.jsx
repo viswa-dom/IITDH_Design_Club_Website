@@ -28,6 +28,7 @@ const Cart = lazy(() => import("./components/Cart"));
 const ResetPassword = lazy(() => import("./components/ResetPassword"));
 const Confirmation = lazy(() => import("./components/OrderConfirmation"));
 const Admin = lazy(() => import("./components/Admin"));
+const AdminUsers = lazy(() => import("./components/AdminUsers"));
 
 // Loader
 const LoadingSection = () => (
@@ -172,6 +173,19 @@ export default function App() {
         />
 
         <Route path="/admin" element={<Admin />} />
+        <Route
+          path="/admin/users"
+          element={
+            user?.app_metadata?.role === "admin" ? (
+              <Suspense fallback={<LoadingSection />}>
+                <AdminUsers />
+              </Suspense>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
 
         <Route path="/confirmation" element={<Confirmation />} />
 

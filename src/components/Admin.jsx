@@ -4,14 +4,13 @@ import { useAuth } from "../hooks/useAuth";
 
 export default function Admin() {
   const { user, loading } = useAuth();
-  const isAdmin = user?.app_metadata?.role === 'admin';
   const navigate = useNavigate();
 
+  const isAdmin = user?.app_metadata?.role === "admin";
+
   useEffect(() => {
-    if (!loading) {
-      if (!user || !isAdmin) {
-        navigate("/");
-      }
+    if (!loading && (!user || !isAdmin)) {
+      navigate("/");
     }
   }, [user, isAdmin, loading, navigate]);
 
@@ -23,24 +22,37 @@ export default function Admin() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-light mb-2">Admin Dashboard</h1>
           <p className="text-gray-400 font-light">
-            Manage merch and orders
+            Manage users, merch, and orders
           </p>
         </div>
       </section>
 
       <section className="px-6 pb-20">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
 
+          {/* USERS */}
+          <div className="bg-white text-black p-6 rounded-sm shadow-2xl">
+            <h2 className="text-2xl font-light mb-4">Users</h2>
+            <button
+              onClick={() => navigate("/admin/users")}
+              className="w-full py-2 border border-black hover:bg-black hover:text-white transition"
+            >
+              Manage Users
+            </button>
+          </div>
+
+          {/* MERCH */}
           <div className="bg-white text-black p-6 rounded-sm shadow-2xl">
             <h2 className="text-2xl font-light mb-4">Merch</h2>
-            <button className="w-full py-2 border border-black hover:bg-black hover:text-white font-light transition">
+            <button className="w-full py-2 border border-black hover:bg-black hover:text-white transition">
               Add / Edit Merch
             </button>
           </div>
 
+          {/* ORDERS */}
           <div className="bg-white text-black p-6 rounded-sm shadow-2xl">
             <h2 className="text-2xl font-light mb-4">Orders</h2>
-            <button className="w-full py-2 border border-black hover:bg-black hover:text-white font-light transition">
+            <button className="w-full py-2 border border-black hover:bg-black hover:text-white transition">
               View Orders
             </button>
           </div>
