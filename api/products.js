@@ -60,7 +60,10 @@ export async function POST(req) {
     );
 
   } catch (e) {
-    return new Response(e.message, { status: 500 });
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 }
 
@@ -90,7 +93,10 @@ export async function PUT(req) {
     return new Response(JSON.stringify({ success: true }), { status: 200 });
 
   } catch (e) {
-    return new Response(e.message, { status: 500 });
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 }
 
@@ -117,6 +123,9 @@ export async function DELETE(req) {
     return new Response(JSON.stringify({ success: true }), { status: 200 });
 
   } catch (e) {
-    return new Response(e.message, { status: 500 });
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 }
