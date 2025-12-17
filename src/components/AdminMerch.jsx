@@ -22,6 +22,14 @@ export default function AdminMerch() {
 
   const fetchProducts = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        setError("No session found");
+        setLoading(false);
+        return;
+      }
+      
       const res = await fetch("/api/products");
       
       // Check if response is ok
