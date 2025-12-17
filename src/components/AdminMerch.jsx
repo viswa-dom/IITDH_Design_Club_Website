@@ -29,8 +29,12 @@ export default function AdminMerch() {
         setLoading(false);
         return;
       }
-      
-      const res = await fetch("/api/products");
+
+      const res = await fetch("/api/products", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
       
       // Check if response is ok
       if (!res.ok) {
