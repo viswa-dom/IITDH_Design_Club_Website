@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
+
   "crons": [
     {
       "path": "/api/cron-check-bans",
@@ -9,3 +10,4 @@
     }
   ]
 }
+
