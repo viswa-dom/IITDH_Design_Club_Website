@@ -80,6 +80,11 @@ export default function AdminUsers() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
+      if (!session) {
+        alert("No session found. Please log in again.");
+        return;
+      }
+
       const body = {
         userId: selectedUser.id,
         action: modalAction,
@@ -99,14 +104,45 @@ export default function AdminUsers() {
         body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error(`Failed to ${modalAction} user`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || `Failed to ${modalAction} user`);
+      }
 
       setShowModal(false);
       await fetchUsers();
-      alert(`User ${modalAction}d successfully`);
+      alert(`User ${modalAction === "unban" ? "unbanned" : modalAction + "d"} successfully`);
     } catch (err) {
       console.error(`Error ${modalAction}ing user:`, err);
-      alert(`Failed to ${modalAction} user`);
+      alert(`Failed to ${modalAction} user: ${err.message}`);
+    }
+  };
+
+  const handleUnban = async (user) => {
+    if (!confirm(`Unban user ${user.email}?`)) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const res = await fetch("/api/user-disable", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          action: "unban",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to unban user");
+
+      await fetchUsers();
+      alert("User unbanned successfully");
+    } catch (err) {
+      console.error("Error unbanning user:", err);
+      alert("Failed to unban user");
     }
   };
 
@@ -151,54 +187,82 @@ export default function AdminUsers() {
               <tr className="border-b-2 border-gray-300">
                 <th className="p-4 text-left font-light tracking-wide">Email</th>
                 <th className="p-4 text-center font-light tracking-wide">Role</th>
+                <th className="p-4 text-center font-light tracking-wide">Status</th>
                 <th className="p-4 text-center font-light tracking-wide">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map(u => (
-                <tr key={u.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200">
-                  <td className="p-4 font-light tracking-wide">{u.email}</td>
-                  <td className="p-4 text-center">
-                    <span className={`inline-block px-3 py-1 text-sm tracking-wide ${
-                      u.app_metadata?.role === "admin"
-                        ? "bg-black text-white"
-                        : "bg-gray-200 text-black"
-                    }`}>
-                      {u.app_metadata?.role || "user"}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex gap-2 justify-center flex-wrap">
-                      <button
-                        onClick={() => updateRole(u.id, "admin")}
-                        className="px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed text-sm tracking-wide font-light"
-                        disabled={u.app_metadata?.role === "admin"}
-                      >
-                        Make Admin
-                      </button>
-                      <button
-                        onClick={() => updateRole(u.id, "user")}
-                        className="px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed text-sm tracking-wide font-light"
-                        disabled={u.app_metadata?.role !== "admin"}
-                      >
-                        Remove Admin
-                      </button>
-                      <button
-                        onClick={() => openModal("disable", u)}
-                        className="px-4 py-2 border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
-                      >
-                        Disable
-                      </button>
-                      <button
-                        onClick={() => openModal("delete", u)}
-                        className="px-4 py-2 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {users.map(u => {
+                const isBanned = u.banned_until && new Date(u.banned_until) > new Date();
+                
+                return (
+                  <tr key={u.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                    <td className="p-4 font-light tracking-wide">{u.email}</td>
+                    <td className="p-4 text-center">
+                      <span className={`inline-block px-3 py-1 text-sm tracking-wide ${
+                        u.app_metadata?.role === "admin"
+                          ? "bg-black text-white"
+                          : "bg-gray-200 text-black"
+                      }`}>
+                        {u.app_metadata?.role || "user"}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      {isBanned ? (
+                        <span className="inline-block px-3 py-1 text-sm tracking-wide bg-red-100 text-red-600">
+                          Banned
+                        </span>
+                      ) : (
+                        <span className="inline-block px-3 py-1 text-sm tracking-wide bg-green-100 text-green-600">
+                          Active
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        {!isBanned && (
+                          <>
+                            <button
+                              onClick={() => updateRole(u.id, "admin")}
+                              className="px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed text-sm tracking-wide font-light"
+                              disabled={u.app_metadata?.role === "admin"}
+                            >
+                              Make Admin
+                            </button>
+                            <button
+                              onClick={() => updateRole(u.id, "user")}
+                              className="px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed text-sm tracking-wide font-light"
+                              disabled={u.app_metadata?.role !== "admin"}
+                            >
+                              Remove Admin
+                            </button>
+                            <button
+                              onClick={() => openModal("disable", u)}
+                              className="px-4 py-2 border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
+                            >
+                              Disable
+                            </button>
+                            <button
+                              onClick={() => openModal("delete", u)}
+                              className="px-4 py-2 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                        {isBanned && (
+                          <button
+                            onClick={() => handleUnban(u)}
+                            className="px-4 py-2 border border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
+                          >
+                            Unban
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -251,8 +315,8 @@ export default function AdminUsers() {
               <button
                 onClick={handleAction}
                 className={`flex-1 px-4 py-2 ${
-                  modalAction === "delete" 
-                    ? "bg-red-600 hover:bg-red-700" 
+                  modalAction === "delete"
+                    ? "bg-red-600 hover:bg-red-700"
                     : "bg-orange-600 hover:bg-orange-700"
                 } text-white transition-all duration-300 tracking-wide font-light`}
               >

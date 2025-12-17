@@ -46,7 +46,7 @@ export default async function handler(req, res) {
 
   try {
     const { userId, action, duration, reason } = req.body;
-    // action: "disable" | "delete"
+    // action: "disable" | "delete" | "unban"
     // duration: number (in hours) for disable, or "permanent"
     // reason: optional string explaining why
 
@@ -98,6 +98,7 @@ export default async function handler(req, res) {
             <p>Dear User,</p>
             <p>Your account has been disabled ${durationText}.</p>
             ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+            ${duration !== "permanent" ? `<p>Your account will be automatically reactivated after the ban period expires, and you will receive a notification email.</p>` : ''}
             <p>If you believe this is a mistake, please contact our support team.</p>
             <p style="margin-top: 30px; color: #666;">
               Best regards,<br/>
@@ -110,6 +111,41 @@ export default async function handler(req, res) {
       return res.status(200).json({ 
         success: true, 
         message: `User disabled ${durationText}` 
+      });
+
+    } else if (action === "unban") {
+      // Unban user by setting ban_duration to "none"
+      const { error } = await supabase.auth.admin.updateUserById(userId, {
+        ban_duration: "none",
+      });
+
+      if (error) {
+        console.error("Unban user error:", error);
+        return res.status(500).json({ error: error.message });
+      }
+
+      // Send email notification
+      await sendEmail(
+        userEmail,
+        "Account Reactivated - Abhikalpa",
+        `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #000;">Account Reactivated</h2>
+            <p>Dear User,</p>
+            <p>Good news! Your account has been reactivated and you can now access all features.</p>
+            ${reason ? `<p><strong>Note:</strong> ${reason}</p>` : ''}
+            <p>You can log in and continue using our services.</p>
+            <p style="margin-top: 30px; color: #666;">
+              Best regards,<br/>
+              Abhikalpa Team
+            </p>
+          </div>
+        `
+      );
+
+      return res.status(200).json({ 
+        success: true, 
+        message: "User unbanned successfully" 
       });
 
     } else if (action === "delete") {
@@ -147,7 +183,7 @@ export default async function handler(req, res) {
       });
 
     } else {
-      return res.status(400).json({ error: "Invalid action. Use 'disable' or 'delete'" });
+      return res.status(400).json({ error: "Invalid action. Use 'disable', 'unban', or 'delete'" });
     }
 
   } catch (err) {
