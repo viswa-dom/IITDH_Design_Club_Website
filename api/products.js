@@ -20,8 +20,9 @@ async function connectToDatabase() {
   return client;
 }
 
+// Remove VITE_ prefix for server-side environment variables
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
@@ -58,11 +59,17 @@ export default async function handler(req, res) {
 // ------------------- GET (Public) -------------------
 async function handleGET(req, res) {
   try {
+    console.log('GET /api/products - Starting');
+    console.log('MongoDB URI exists:', !!process.env.MONGODB_URI);
+    
     const client = await connectToDatabase();
+    console.log('MongoDB connected');
+    
     const db = client.db("abhikalpa");
     const products = db.collection("products");
 
     const all = await products.find({}).sort({ createdAt: -1 }).toArray();
+    console.log('Found products:', all.length);
 
     return res.status(200).json(all);
   } catch (e) {
