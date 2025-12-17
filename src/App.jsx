@@ -21,6 +21,7 @@ import ContactUs from "./policy-pages/ContactUs";
 import PrivacyPolicy from "./policy-pages/PrivacyPolicy";
 import TermsConditions from "./policy-pages/TermsConditions";
 import ShippingPolicy from "./policy-pages/ShippingPolicy";
+import AdminMerch from "./components/AdminMerch";
 
 // Lazy-loaded components
 const Etymology = lazy(() =>
@@ -265,6 +266,15 @@ export default function App() {
                 element={
                   <Suspense fallback={<LoadingSection />}>
                     <AdminUsers />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/admin/products"
+                element={
+                  <Suspense fallback={<LoadingSection />}>
+                    <AdminMerch />
                   </Suspense>
                 }
               />
