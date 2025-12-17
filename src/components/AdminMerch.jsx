@@ -23,11 +23,26 @@ export default function AdminMerch() {
   const fetchProducts = async () => {
     try {
       const res = await fetch("/api/products");
+      
+      // Check if response is ok
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
-      setProducts(data);
+      
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        console.error("API returned non-array data:", data);
+        setProducts([]);
+        alert("Failed to load products: Invalid data format");
+      }
     } catch (err) {
-      console.error(err);
-      alert("Failed to load products");
+      console.error("Fetch error:", err);
+      setProducts([]);
+      alert("Failed to load products: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -69,13 +84,16 @@ export default function AdminMerch() {
         }),
       });
 
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Save failed");
+      }
 
       setShowModal(false);
       fetchProducts();
     } catch (err) {
       console.error(err);
-      alert("Failed to save product");
+      alert("Failed to save product: " + err.message);
     }
   };
 
@@ -85,7 +103,7 @@ export default function AdminMerch() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      await fetch("/api/products", {
+      const res = await fetch("/api/products", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -94,9 +112,15 @@ export default function AdminMerch() {
         body: JSON.stringify({ _id: id }),
       });
 
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Delete failed");
+      }
+
       fetchProducts();
-    } catch {
-      alert("Delete failed");
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed: " + err.message);
     }
   };
 
@@ -149,6 +173,7 @@ export default function AdminMerch() {
               <div key={p._id} className="bg-white text-black p-6 hover:shadow-2xl transition">
                 <img
                   src={p.images?.[0] || "https://via.placeholder.com/400"}
+                  alt={p.name}
                   className="w-full h-56 object-cover mb-6"
                 />
 
@@ -197,7 +222,7 @@ export default function AdminMerch() {
 
               <textarea
                 placeholder="Description"
-                rows="3"
+                rows={3}
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                 className="w-full border px-3 py-2 font-light"
