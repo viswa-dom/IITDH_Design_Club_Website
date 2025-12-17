@@ -1,19 +1,19 @@
 // api/products.js
-import clientPromise from "../lib/mongodb";
+import clientPromise from "../lib/mongodb.js";
 import { createClient } from "@supabase/supabase-js";
+import { ObjectId } from "mongodb";
 
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
 
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
@@ -22,64 +22,91 @@ export default async function handler(req, res) {
     const db = client.db("abhikalpa");
     const products = db.collection("products");
 
-    // GET - Fetch all products (public)
-    if (req.method === 'GET') {
-      const allProducts = await products.find({}).sort({ createdAt: -1 }).toArray();
+    /* =====================
+      GET (PUBLIC)
+    ====================== */
+    if (req.method === "GET") {
+      const allProducts = await products
+        .find({})
+        .sort({ createdAt: -1 })
+        .toArray();
+
       return res.status(200).json(allProducts);
     }
 
-    // All other methods require admin auth
+    /* =====================
+      ADMIN AUTH REQUIRED
+    ====================== */
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (!token) {
       return res.status(401).json({ error: "Missing token" });
     }
 
-    const { data: adminUser, error: authError } = await supabase.auth.getUser(token);
-    if (authError || adminUser.user.app_metadata?.role !== "admin") {
-      return res.status(403).json({ error: "Forbidden - Admin only" });
+    const { data: adminUser, error } = await supabase.auth.getUser(token);
+
+    if (error || adminUser.user.app_metadata?.role !== "admin") {
+      return res.status(403).json({ error: "Admin only" });
     }
 
-    // POST - Create new product
-    if (req.method === 'POST') {
+    /* =====================
+      POST
+    ====================== */
+    if (req.method === "POST") {
       const product = {
         ...req.body,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
+
       const result = await products.insertOne(product);
-      return res.status(201).json({ _id: result.insertedId, ...product });
+      return res.status(201).json({
+        _id: result.insertedId,
+        ...product,
+      });
     }
 
-    // PUT - Update product
-    if (req.method === 'PUT') {
+    /* =====================
+      PUT
+    ====================== */
+    if (req.method === "PUT") {
       const { _id, ...updateData } = req.body;
-      const { ObjectId } = require('mongodb');
-      
+
+      if (!_id) {
+        return res.status(400).json({ error: "Missing product id" });
+      }
+
       const result = await products.updateOne(
         { _id: new ObjectId(_id) },
-        { 
+        {
           $set: {
             ...updateData,
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         }
       );
 
-      if (result.matchedCount === 0) {
+      if (!result.matchedCount) {
         return res.status(404).json({ error: "Product not found" });
       }
 
       return res.status(200).json({ success: true });
     }
 
-    // DELETE - Delete product
-    if (req.method === 'DELETE') {
+    /* =====================
+      DELETE
+    ====================== */
+    if (req.method === "DELETE") {
       const { _id } = req.body;
-      const { ObjectId } = require('mongodb');
-      
-      const result = await products.deleteOne({ _id: new ObjectId(_id) });
 
-      if (result.deletedCount === 0) {
+      if (!_id) {
+        return res.status(400).json({ error: "Missing product id" });
+      }
+
+      const result = await products.deleteOne({
+        _id: new ObjectId(_id),
+      });
+
+      if (!result.deletedCount) {
         return res.status(404).json({ error: "Product not found" });
       }
 
@@ -87,9 +114,8 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).json({ error: "Method not allowed" });
-
-  } catch (error) {
-    console.error("Products API error:", error);
-    return res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error("Products API error:", err);
+    return res.status(500).json({ error: err.message });
   }
 }
