@@ -23,10 +23,23 @@ async function connectToDatabase() {
 }
 
 // Use server-side environment variables (no VITE_ prefix)
-const supabase = createClient(
+// public supabase auth client
+const supabaseAuth = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_ANON_KEY
 );
+
+// verify user using anon client
+const { data, error } = await supabaseAuth.auth.getUser(token);
+
+if (error) {
+  return res.status(401).json({ error: "Invalid token" });
+}
+
+if (data.user?.app_metadata?.role !== "admin") {
+  return res.status(403).json({ error: "Forbidden" });
+}
+
 
 
 // ------------------- Main Handler -------------------
