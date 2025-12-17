@@ -160,8 +160,8 @@ export default function AdminUsers() {
                   <td className="p-4 font-light tracking-wide">{u.email}</td>
                   <td className="p-4 text-center">
                     <span className={`inline-block px-3 py-1 text-sm tracking-wide ${
-                      u.app_metadata?.role === "admin" 
-                        ? "bg-black text-white" 
+                      u.app_metadata?.role === "admin"
+                        ? "bg-black text-white"
                         : "bg-gray-200 text-black"
                     }`}>
                       {u.app_metadata?.role || "user"}
