@@ -1,0 +1,49 @@
+[33mde905c1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Remove .env.local from tracking
+[33mb3464ce[m Styling changes to users page
+[33m79dee30[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Added auto-scrolling to top for some pages
+[33m4a29f29[m Fixed lazy loading error
+[33m45c767e[m Working on making users table
+[33m8445fe0[m Working on making users table
+[33md0321f3[m Added RequireAdmin logic for more security
+[33mb639ada[m Added RequireAdmin logic for more security
+[33m207685a[m[33m ([m[1;31morigin/admin-feature[m[33m)[m Add admin user management system
+[33m2ef09cb[m Refined admin page according to supabase
+[33mef2e1d8[m Refined admin page according to supabase
+[33m0840c2c[m Refined admin page according to supabase
+[33m20b4a14[m Refined admin page according to supabase
+[33mdd046b0[m Refined admin page according to supabase
+[33m56cc8dd[m Refined admin page according to supabase
+[33m95191f1[m Added static admin page, routing not done
+[33m23b9261[m Added google form for order confirmation
+[33m0ae91a6[m Added google form for order confirmation
+[33m1054cbb[m Added google form for order confirmation
+[33ma687b37[m Added google form for order confirmation
+[33mf4c03a7[m Added google form for order confirmation
+[33m087f31a[m changed QRCode to QRCodeSVG
+[33m5b92da6[m Added QR code generation on checkout
+[33m3baccfa[m Added QR code generation on checkout
+[33med4fe79[m Added QR code generation on checkout
+[33mab28185[m Switched from HashRouter to BrowserRouter
+[33m2c34445[m Switched from HashRouter to BrowserRouter
+[33m685dcd0[m Switched from HashRouter to BrowserRouter
+[33m1b0fa79[m Added policy pages
+[33m6ce4510[m Changed password to pass
+[33m6fe6925[m Merge branch 'main' of https://github.com/viswa-dom/IITDH_Design_Club_Website
+[33m6e95759[m Removed emailAPI.js, removed white space
+[33ma7089ae[m Deleted emailAPI.js
+[33m3aea3d0[m Test
+[33m44d2c26[m Testing
+[33m22979d3[m Reverting changes
+[33m8a2bf81[m Working on email service in prod
+[33m0cf55f5[m Working on email service in prod
+[33m8324a5f[m Fixed email service for production
+[33m9d9abcb[m Fixed email service for production
+[33mb92fd3b[m Added Your Cart page
+[33mf00245e[m Updated README.md
+[33me7ccf89[m Updated README.md
+[33me0a84fd[m Updated the login and forgot password logic, created merch and profile static page, also updated the contact form to send automated mails to admin mail.
+[33m2f18cad[m Implemented auth, fixed visual bugs
+[33m66e616b[m Changed all the files to .jsx and added logic for oauth
+[33mbee17ae[m Changed tsx files to jsx
+[33m5f2b909[m Updated README.md
+[33m41a5e0e[m Start repository
