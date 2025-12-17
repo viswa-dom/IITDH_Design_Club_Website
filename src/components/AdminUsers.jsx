@@ -251,12 +251,20 @@ export default function AdminUsers() {
                           </>
                         )}
                         {isBanned && (
-                          <button
-                            onClick={() => handleUnban(u)}
-                            className="px-4 py-2 border border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
-                          >
-                            Unban
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleUnban(u)}
+                              className="px-4 py-2 border border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
+                            >
+                              Unban
+                            </button>
+                            <button
+                              onClick={() => openModal("delete", u)}
+                              className="px-4 py-2 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
+                            >
+                              Delete
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
