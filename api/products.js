@@ -1,6 +1,24 @@
-import clientPromise from "../src/lib/mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { createClient } from "@supabase/supabase-js";
-import { ObjectId } from "mongodb";
+
+// Initialize MongoDB client directly in the API route
+const uri = process.env.MONGODB_URI;
+let cachedClient = null;
+
+async function connectToDatabase() {
+  if (cachedClient) {
+    return cachedClient;
+  }
+
+  if (!uri) {
+    throw new Error('MONGODB_URI is not defined');
+  }
+
+  const client = new MongoClient(uri);
+  await client.connect();
+  cachedClient = client;
+  return client;
+}
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -33,93 +51,121 @@ export default async function handler(req, res) {
     }
   } catch (e) {
     console.error('API Error:', e);
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: e.message || 'Internal server error' });
   }
 }
 
 // ------------------- GET (Public) -------------------
 async function handleGET(req, res) {
-  const client = await clientPromise;
-  const db = client.db("abhikalpa");
-  const products = db.collection("products");
+  try {
+    const client = await connectToDatabase();
+    const db = client.db("abhikalpa");
+    const products = db.collection("products");
 
-  const all = await products.find({}).sort({ createdAt: -1 }).toArray();
+    const all = await products.find({}).sort({ createdAt: -1 }).toArray();
 
-  return res.status(200).json(all);
+    return res.status(200).json(all);
+  } catch (e) {
+    console.error('GET Error:', e);
+    return res.status(500).json({ error: e.message });
+  }
 }
 
 // ------------------- POST (Admin only) -------------------
 async function handlePOST(req, res) {
-  const token = req.headers.authorization?.replace("Bearer ", "");
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || data.user?.app_metadata?.role !== "admin") {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const client = await connectToDatabase();
+    const db = client.db("abhikalpa");
+    const products = db.collection("products");
+
+    const product = {
+      ...req.body,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await products.insertOne(product);
+
+    return res.status(201).json({ _id: result.insertedId, ...product });
+  } catch (e) {
+    console.error('POST Error:', e);
+    return res.status(500).json({ error: e.message });
   }
-
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || data.user?.app_metadata?.role !== "admin") {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-
-  const client = await clientPromise;
-  const db = client.db("abhikalpa");
-  const products = db.collection("products");
-
-  const product = {
-    ...req.body,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  const result = await products.insertOne(product);
-
-  return res.status(201).json({ _id: result.insertedId, ...product });
 }
 
 // ------------------- PUT (Admin only) -------------------
 async function handlePUT(req, res) {
-  const token = req.headers.authorization?.replace("Bearer ", "");
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || data.user?.app_metadata?.role !== "admin") {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const { _id, ...updateData } = req.body;
+
+    if (!_id) {
+      return res.status(400).json({ error: 'Product ID is required' });
+    }
+
+    const client = await connectToDatabase();
+    const db = client.db("abhikalpa");
+    const products = db.collection("products");
+
+    await products.updateOne(
+      { _id: new ObjectId(_id) },
+      { $set: { ...updateData, updatedAt: new Date() } }
+    );
+
+    return res.status(200).json({ success: true });
+  } catch (e) {
+    console.error('PUT Error:', e);
+    return res.status(500).json({ error: e.message });
   }
-
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || data.user?.app_metadata?.role !== "admin") {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-
-  const { _id, ...updateData } = req.body;
-
-  const client = await clientPromise;
-  const db = client.db("abhikalpa");
-  const products = db.collection("products");
-
-  await products.updateOne(
-    { _id: new ObjectId(_id) },
-    { $set: { ...updateData, updatedAt: new Date() } }
-  );
-
-  return res.status(200).json({ success: true });
 }
 
 // ------------------- DELETE (Admin only) -------------------
 async function handleDELETE(req, res) {
-  const token = req.headers.authorization?.replace("Bearer ", "");
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || data.user?.app_metadata?.role !== "admin") {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const { _id } = req.body;
+
+    if (!_id) {
+      return res.status(400).json({ error: 'Product ID is required' });
+    }
+
+    const client = await connectToDatabase();
+    const db = client.db("abhikalpa");
+    const products = db.collection("products");
+
+    await products.deleteOne({ _id: new ObjectId(_id) });
+
+    return res.status(200).json({ success: true });
+  } catch (e) {
+    console.error('DELETE Error:', e);
+    return res.status(500).json({ error: e.message });
   }
-
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || data.user?.app_metadata?.role !== "admin") {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-
-  const { _id } = req.body;
-
-  const client = await clientPromise;
-  const db = client.db("abhikalpa");
-  const products = db.collection("products");
-
-  await products.deleteOne({ _id: new ObjectId(_id) });
-
-  return res.status(200).json({ success: true });
 }
