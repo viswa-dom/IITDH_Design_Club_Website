@@ -5,6 +5,11 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalAction, setModalAction] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [duration, setDuration] = useState("24");
+  const [reason, setReason] = useState("");
 
   const fetchUsers = async () => {
     try {
@@ -63,9 +68,27 @@ export default function AdminUsers() {
     }
   };
 
-  const disableUser = async (id) => {
+  const openModal = (action, user) => {
+    setModalAction(action);
+    setSelectedUser(user);
+    setShowModal(true);
+    setDuration("24");
+    setReason("");
+  };
+
+  const handleAction = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
+
+      const body = {
+        userId: selectedUser.id,
+        action: modalAction,
+        reason: reason.trim() || undefined,
+      };
+
+      if (modalAction === "disable") {
+        body.duration = duration === "permanent" ? "permanent" : parseInt(duration);
+      }
 
       const res = await fetch("/api/user-disable", {
         method: "POST",
@@ -73,15 +96,17 @@ export default function AdminUsers() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ userId: id }),
+        body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error("Failed to disable user");
+      if (!res.ok) throw new Error(`Failed to ${modalAction} user`);
 
+      setShowModal(false);
       await fetchUsers();
+      alert(`User ${modalAction}d successfully`);
     } catch (err) {
-      console.error("Error disabling user:", err);
-      alert("Failed to disable user");
+      console.error(`Error ${modalAction}ing user:`, err);
+      alert(`Failed to ${modalAction} user`);
     }
   };
 
@@ -111,7 +136,7 @@ export default function AdminUsers() {
 
   return (
     <div className="min-h-screen bg-black text-white px-6 py-16 md:px-12 lg:px-24">
-      {/* Header Section - matching merch page style */}
+      {/* Header Section */}
       <div className="mb-16">
         <h1 className="text-4xl md:text-5xl font-light mb-4 tracking-wide">Users Management</h1>
         <p className="text-gray-400 font-light tracking-wide">Manage user roles and permissions</p>
@@ -159,14 +184,16 @@ export default function AdminUsers() {
                         Remove Admin
                       </button>
                       <button
-                        onClick={() => {
-                          if (confirm(`Disable user ${u.email}?`)) {
-                            disableUser(u.id);
-                          }
-                        }}
-                        className="px-4 py-2 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
+                        onClick={() => openModal("disable", u)}
+                        className="px-4 py-2 border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
                       >
                         Disable
+                      </button>
+                      <button
+                        onClick={() => openModal("delete", u)}
+                        className="px-4 py-2 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
+                      >
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -174,6 +201,71 @@ export default function AdminUsers() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 px-4">
+          <div className="bg-white text-black p-8 max-w-md w-full">
+            <h2 className="text-2xl font-light mb-6 tracking-wide">
+              {modalAction === "disable" ? "Disable User" : "Delete User"}
+            </h2>
+            
+            <p className="mb-4 font-light">
+              User: <strong>{selectedUser?.email}</strong>
+            </p>
+
+            {modalAction === "disable" && (
+              <div className="mb-4">
+                <label className="block mb-2 font-light tracking-wide">Duration</label>
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full p-2 border border-gray-300 font-light"
+                >
+                  <option value="1">1 hour</option>
+                  <option value="6">6 hours</option>
+                  <option value="24">24 hours</option>
+                  <option value="168">1 week</option>
+                  <option value="720">1 month</option>
+                  <option value="permanent">Permanent</option>
+                </select>
+              </div>
+            )}
+
+            <div className="mb-6">
+              <label className="block mb-2 font-light tracking-wide">
+                Reason (optional)
+              </label>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="w-full p-2 border border-gray-300 font-light"
+                rows="3"
+                placeholder="Explain why this action is being taken..."
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleAction}
+                className={`flex-1 px-4 py-2 ${
+                  modalAction === "delete" 
+                    ? "bg-red-600 hover:bg-red-700" 
+                    : "bg-orange-600 hover:bg-orange-700"
+                } text-white transition-all duration-300 tracking-wide font-light`}
+              >
+                Confirm {modalAction === "disable" ? "Disable" : "Delete"}
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 px-4 py-2 border border-black hover:bg-black hover:text-white transition-all duration-300 tracking-wide font-light"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
