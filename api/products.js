@@ -20,9 +20,9 @@ async function connectToDatabase() {
   return client;
 }
 
-// Remove VITE_ prefix for server-side environment variables
+// Use server-side environment variables (no VITE_ prefix)
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
