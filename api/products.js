@@ -1,4 +1,3 @@
-export const runtime = 'nodejs';
 import clientPromise from "../src/lib/mongodb";
 import { createClient } from "@supabase/supabase-js";
 import { ObjectId } from "mongodb";
