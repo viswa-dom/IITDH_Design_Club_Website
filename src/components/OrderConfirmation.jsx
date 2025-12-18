@@ -10,15 +10,18 @@ export default function OrderConfirmation() {
   useEffect(() => {
     async function finalizeOrder() {
       try {
-        // 1️⃣ Read cart from localStorage
-        const raw = localStorage.getItem("cart");
+        // 1️⃣ Read cart from localStorage (CartContext stores as object with key 'abhikalpa_cart')
+        const raw = localStorage.getItem("abhikalpa_cart");
         if (!raw) {
           setStatus("error");
           setErrorMessage("No cart data found. Please try placing your order again.");
           return;
         }
 
-        const cart = JSON.parse(raw);
+        const cartObject = JSON.parse(raw);
+        
+        // Convert cart object to array
+        const cart = Object.values(cartObject);
 
         if (cart.length === 0) {
           setStatus("error");
@@ -30,6 +33,7 @@ export default function OrderConfirmation() {
         const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
         // 3️⃣ Create order in database
+        // Note: Customer info (name, email, phone) will be added later via Google Form sync
         const orderPayload = {
           transactionId: crypto.randomUUID(), // temporary ID until google form sync
           items: cart.map(item => ({
@@ -40,7 +44,11 @@ export default function OrderConfirmation() {
             price: item.price
           })),
           total,
-          status: "Pending"
+          status: "Pending",
+          // Placeholder customer info - will be updated when Google Form is synced
+          name: "Pending Form Submission",
+          email: "pending@form.submission",
+          phone: "N/A"
         };
 
         const orderRes = await fetch("/api/orders", {
@@ -81,7 +89,7 @@ export default function OrderConfirmation() {
         console.log("Stock deducted:", stockData);
 
         // 6️⃣ Clear cart after successful order
-        localStorage.removeItem("cart");
+        localStorage.removeItem("abhikalpa_cart");
 
         // Trigger cart update event for CartContext
         window.dispatchEvent(new Event("storage"));
