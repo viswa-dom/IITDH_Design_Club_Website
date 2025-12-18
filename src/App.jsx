@@ -22,6 +22,7 @@ import PrivacyPolicy from "./policy-pages/PrivacyPolicy";
 import TermsConditions from "./policy-pages/TermsConditions";
 import ShippingPolicy from "./policy-pages/ShippingPolicy";
 import AdminMerch from "./components/AdminMerch";
+import AdminOrders from "./components/AdminOrders";
 
 // Lazy-loaded components
 const Etymology = lazy(() =>
@@ -72,8 +73,6 @@ const Admin = lazy(() =>
 const AdminUsers = lazy(() =>
   import("./components/AdminUsers").then(m => ({ default: m.default }))
 );
-
-
 
 // Loader
 const LoadingSection = () => (
@@ -275,6 +274,15 @@ export default function App() {
                 element={
                   <Suspense fallback={<LoadingSection />}>
                     <AdminMerch />
+                  </Suspense>
+                }
+              />
+
+              <Route
+                path="/admin/orders"
+                element={
+                  <Suspense fallback={<LoadingSection />}>
+                    <AdminOrders />
                   </Suspense>
                 }
               />

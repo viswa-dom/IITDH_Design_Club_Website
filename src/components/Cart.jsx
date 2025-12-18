@@ -82,14 +82,29 @@ export default function Cart() {
 
   const handlePaymentComplete = async () => {
     // Deduct stock after payment
-    const items = cartItems.map(item => ({
-      productId: item._id,
-      size: item.selectedSize,
-      quantity: item.quantity,
-      sizeType: item.sizeType
-    }));
+    // build order payload
+    const orderPayload = {
+      transactionId: crypto.randomUUID(),     // temporary ID until google form sync
+      items: cartItems.map(item => ({
+        productId: item._id,
+        name: item.name,
+        size: item.selectedSize,
+        quantity: item.quantity,
+        price: item.price
+      })),
+      total
+    };
 
     try {
+      const orderRes = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
+      });
+
+      if (!orderRes.ok) {
+        throw new Error("Order failed to save");
+      }
       const res = await fetch("/api/deduct-stock", {
         method: "POST",
         headers: {
