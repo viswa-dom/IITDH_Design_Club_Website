@@ -66,66 +66,9 @@ export default function Cart() {
     updateQuantity(item.id, item.quantity - 1);
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (total <= 0) return;
-
-    // Prepare items for stock deduction
-    const items = cartItems.map(item => ({
-      productId: item._id,
-      size: item.selectedSize,
-      quantity: item.quantity,
-      sizeType: item.sizeType
-    }));
-
     setShowQR(true);
-  };
-
-  const handlePaymentComplete = async () => {
-    // Deduct stock after payment
-    // build order payload
-    const orderPayload = {
-      transactionId: crypto.randomUUID(),     // temporary ID until google form sync
-      items: cartItems.map(item => ({
-        productId: item._id,
-        name: item.name,
-        size: item.selectedSize,
-        quantity: item.quantity,
-        price: item.price
-      })),
-      total
-    };
-
-    try {
-      const orderRes = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
-      });
-
-      if (!orderRes.ok) {
-        throw new Error("Order failed to save");
-      }
-      const res = await fetch("/api/deduct-stock", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ items })
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to deduct stock");
-      }
-
-      // Clear cart after successful payment
-      clearCart();
-      setShowQR(false);
-      alert("Payment successful! Your order has been confirmed.");
-      navigate("/merch");
-    } catch (err) {
-      console.error("Stock deduction error:", err);
-      alert("There was an issue processing your order. Please contact support.");
-    }
   };
 
   return (
@@ -338,20 +281,18 @@ export default function Cart() {
               >
                 Open Order Form
               </a>
+
+              <p className="text-xs text-gray-500 mt-2 font-light">
+                The form will redirect you to a confirmation page after submission
+              </p>
             </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={handlePaymentComplete}
-                className="flex-1 py-2 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors font-light"
-              >
-                Payment Done
-              </button>
+            <div className="flex gap-2 mt-6">
               <button
                 onClick={() => setShowQR(false)}
                 className="flex-1 py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
               >
-                Cancel
+                Close
               </button>
             </div>
           </div>
