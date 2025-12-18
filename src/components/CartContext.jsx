@@ -26,49 +26,83 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('abhikalpa_cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (item) => {
+  // Listen for product deletions
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'deleted_product' && e.newValue) {
+        removeDeletedProducts(e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Remove deleted products from cart
+  const removeDeletedProducts = (deletedProductId) => {
+    setCart(prev => {
+      const newCart = { ...prev };
+      Object.keys(newCart).forEach(key => {
+        if (key.startsWith(deletedProductId)) {
+          delete newCart[key];
+        }
+      });
+      return newCart;
+    });
+  };
+
+  const addToCart = (item, size = null) => {
+    const key = size ? `${item._id}-${size}` : item._id;
+    
     setCart(prev => ({
       ...prev,
-      [item._id]: {
-        ...item,
-        quantity: (prev[item._id]?.quantity || 0) + 1
+      [key]: {
+        id: key,
+        _id: item._id,
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        image: item.images?.[0],
+        selectedSize: size,
+        sizeType: item.sizeType,
+        quantity: (prev[key]?.quantity || 0) + 1
       }
     }));
   };
 
-  const removeFromCart = (itemId) => {
+  const removeFromCart = (itemKey) => {
     setCart(prev => {
       const newCart = { ...prev };
-      if (newCart[itemId] && newCart[itemId].quantity > 1) {
-        newCart[itemId] = {
-          ...newCart[itemId],
-          quantity: newCart[itemId].quantity - 1
+      if (newCart[itemKey] && newCart[itemKey].quantity > 1) {
+        newCart[itemKey] = {
+          ...newCart[itemKey],
+          quantity: newCart[itemKey].quantity - 1
         };
       } else {
-        delete newCart[itemId];
+        delete newCart[itemKey];
       }
       return newCart;
     });
   };
 
-  const updateQuantity = (itemId, quantity) => {
+  const updateQuantity = (itemKey, quantity) => {
     if (quantity <= 0) {
-      deleteItem(itemId);
+      deleteItem(itemKey);
       return;
     }
     setCart(prev => ({
       ...prev,
-      [itemId]: {
-        ...prev[itemId],
+      [itemKey]: {
+        ...prev[itemKey],
         quantity
       }
     }));
   };
 
-  const deleteItem = (itemId) => {
+  const deleteItem = (itemKey) => {
     setCart(prev => {
       const newCart = { ...prev };
-      delete newCart[itemId];
+      delete newCart[itemKey];
       return newCart;
     });
   };
@@ -101,6 +135,7 @@ export const CartProvider = ({ children }) => {
         getCartItems,
         getCartCount,
         getCartTotal,
+        removeDeletedProducts,
       }}
     >
       {children}

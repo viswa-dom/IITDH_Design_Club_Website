@@ -168,13 +168,19 @@ async function handleDELETE(req, res) {
     const db = client.db("abhikalpa");
     const products = db.collection("products");
 
-    await products.deleteOne({ _id: new ObjectId(_id) });
+    const result = await products.deleteOne({ _id: new ObjectId(_id) });
 
-    return res.status(200).json({ success: true });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Return the deleted product ID so frontend can clean up carts
+    return res.status(200).json({ 
+      success: true,
+      deletedProductId: _id 
+    });
   } catch (e) {
     console.error('DELETE Error:', e);
     return res.status(500).json({ error: e.message });
   }
 }
-
-
