@@ -27,6 +27,12 @@ export default function Merch() {
       setLoading(false);
     }
   };
+  const isSizedProduct = (item) => item.sizeType !== "none";
+
+  const getCartKey = (item, size) =>
+    isSizedProduct(item) ? `${item._id}-${size}` : item._id;
+
+  
 
   const getTotalStock = (item) => {
     if (item.sizeType === "none") return item.quantity || 0;
@@ -45,35 +51,64 @@ export default function Merch() {
     }));
   };
 
+  // const handleAddToCart = (item) => {
+  //   if (item.sizeType !== "none" && !selectedSizes[item._id]) {
+  //     alert("Please select a size first");
+  //     return;
+  //   }
+
+  //   const size = selectedSizes[item._id];
+  //   const availableStock = getAvailableStock(item, size);
+  //   const cartQty = cart[`${item._id}-${size}`]?.quantity || 0;
+
+  //   if (cartQty >= availableStock) {
+  //     alert("No more stock available");
+  //     return;
+  //   }
+
+  //   addToCart(item, size);
+  // };
+
   const handleAddToCart = (item) => {
-    if (item.sizeType !== "none" && !selectedSizes[item._id]) {
-      alert("Please select a size first");
+  let size = null;
+
+  if (isSizedProduct(item)) {
+    size = selectedSizes[item._id];
+    if (!size) {
+      alert("Please select a size");
       return;
     }
+  }
 
-    const size = selectedSizes[item._id];
-    const availableStock = getAvailableStock(item, size);
-    const cartQty = cart[`${item._id}-${size}`]?.quantity || 0;
+  const cartKey = getCartKey(item, size);
+  const cartQty = cart[cartKey]?.quantity || 0;
+  const availableStock = getAvailableStock(item, size);
 
-    if (cartQty >= availableStock) {
-      alert("No more stock available");
-      return;
-    }
+  if (cartQty >= availableStock) {
+    alert("No more stock available");
+    return;
+  }
 
-    addToCart(item, size);
-  };
+  addToCart(item, size);
+};
 
   const handleRemoveFromCart = (item) => {
-    const size = selectedSizes[item._id] || item.sizes?.[0];
-    removeFromCart(`${item._id}-${size}`);
+    const size = isSizedProduct(item)
+      ? selectedSizes[item._id] || item.sizes?.[0]
+      : null;
+
+    removeFromCart(getCartKey(item, size));
   };
 
   const getCartQuantity = (item) => {
-    if (item.sizeType === "none") {
+    if (!isSizedProduct(item)) {
       return cart[item._id]?.quantity || 0;
     }
+
     const size = selectedSizes[item._id];
-    return size ? (cart[`${item._id}-${size}`]?.quantity || 0) : 0;
+    if (!size) return 0;
+
+    return cart[`${item._id}-${size}`]?.quantity || 0;
   };
 
   const cartCount = getCartCount();

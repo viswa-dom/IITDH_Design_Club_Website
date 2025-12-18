@@ -130,7 +130,7 @@ export default async function handler(req, res) {
     const allSuccessful = results.every(r => r.success);
     const successCount = results.filter(r => r.success).length;
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       success: allSuccessful,
       message: `Successfully deducted stock for ${successCount}/${items.length} items`,
       results
@@ -138,9 +138,9 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error("Stock deduction error:", err);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Internal server error',
-      message: err.message 
+      message: err.message
     });
   }
 }

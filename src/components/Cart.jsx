@@ -6,12 +6,12 @@ import { useState, useEffect } from "react";
 
 export default function Cart() {
   const navigate = useNavigate();
-  const { 
-    getCartItems, 
-    updateQuantity, 
-    deleteItem, 
+  const {
+    getCartItems,
+    updateQuantity,
+    deleteItem,
     clearCart,
-    getCartTotal 
+    getCartTotal
   } = useCart();
 
   useEffect(() => {
