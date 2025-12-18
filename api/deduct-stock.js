@@ -35,112 +35,63 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { items } = req.body; // [{productId, size, quantity, sizeType}]
-    
-    if (!items || !Array.isArray(items)) {
-      return res.status(400).json({ error: 'Invalid request body' });
+    const { items } = req.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Invalid items array' });
     }
 
     const client = await connectToDatabase();
     const db = client.db("abhikalpa");
     const products = db.collection("products");
 
-    // Process each item
-    const results = [];
+    // Process each item and deduct stock
     for (const item of items) {
-      if (!item.productId || !item.quantity) {
-        results.push({ 
-          productId: item.productId, 
-          success: false, 
-          error: 'Missing productId or quantity' 
-        });
+      const { productId, size, quantity, sizeType } = item;
+
+      if (!productId || !quantity) {
+        console.error('Invalid item:', item);
         continue;
       }
 
-      try {
-        if (item.sizeType === "none") {
-          // Deduct from quantity for non-sized items
-          const result = await products.updateOne(
-            { 
-              _id: new ObjectId(item.productId),
-              quantity: { $gte: item.quantity } // Ensure enough stock
-            },
-            { $inc: { quantity: -item.quantity } }
-          );
+      // Get current product
+      const product = await products.findOne({ _id: new ObjectId(productId) });
 
-          if (result.matchedCount === 0) {
-            results.push({ 
-              productId: item.productId, 
-              success: false, 
-              error: 'Product not found or insufficient stock' 
-            });
-          } else {
-            results.push({ 
-              productId: item.productId, 
-              success: true,
-              deducted: item.quantity
-            });
-          }
-        } else {
-          // Deduct from specific size stock
-          if (!item.size) {
-            results.push({ 
-              productId: item.productId, 
-              success: false, 
-              error: 'Size not provided' 
-            });
-            continue;
-          }
+      if (!product) {
+        console.error('Product not found:', productId);
+        continue;
+      }
 
-          const result = await products.updateOne(
-            { 
-              _id: new ObjectId(item.productId),
-              [`stock.${item.size}`]: { $gte: item.quantity } // Ensure enough stock
-            },
-            { $inc: { [`stock.${item.size}`]: -item.quantity } }
-          );
-
-          if (result.matchedCount === 0) {
-            results.push({ 
-              productId: item.productId, 
-              size: item.size,
-              success: false, 
-              error: 'Product not found or insufficient stock for size' 
-            });
-          } else {
-            results.push({ 
-              productId: item.productId,
-              size: item.size,
-              success: true,
-              deducted: item.quantity
-            });
+      // Deduct stock based on sizeType
+      if (sizeType === "none") {
+        // No size - deduct from general quantity
+        const newQuantity = Math.max(0, (product.quantity || 0) - quantity);
+        await products.updateOne(
+          { _id: new ObjectId(productId) },
+          { $set: { quantity: newQuantity, updatedAt: new Date() } }
+        );
+      } else if (size && product.stock && product.stock[size] !== undefined) {
+        // Has size - deduct from specific size stock
+        const currentStock = product.stock[size] || 0;
+        const newStock = Math.max(0, currentStock - quantity);
+        
+        await products.updateOne(
+          { _id: new ObjectId(productId) },
+          { 
+            $set: { 
+              [`stock.${size}`]: newStock,
+              updatedAt: new Date()
+            } 
           }
-        }
-      } catch (itemError) {
-        console.error(`Error processing item ${item.productId}:`, itemError);
-        results.push({ 
-          productId: item.productId, 
-          success: false, 
-          error: itemError.message 
-        });
+        );
+      } else {
+        console.error('Invalid size or stock configuration:', { productId, size, stock: product.stock });
       }
     }
 
-    // Check if all items were successful
-    const allSuccessful = results.every(r => r.success);
-    const successCount = results.filter(r => r.success).length;
-
-    return res.status(200).json({
-      success: allSuccessful,
-      message: `Successfully deducted stock for ${successCount}/${items.length} items`,
-      results
-    });
-
-  } catch (err) {
-    console.error("Stock deduction error:", err);
-    return res.status(500).json({
-      error: 'Internal server error',
-      message: err.message
-    });
+    return res.status(200).json({ success: true, message: 'Stock deducted successfully' });
+  } catch (e) {
+    console.error('Deduct stock error:', e);
+    return res.status(500).json({ error: e.message });
   }
 }
