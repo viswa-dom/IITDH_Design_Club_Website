@@ -152,6 +152,10 @@ export default function AdminMerch() {
 
       setShowModal(false);
       fetchProducts();
+      
+      // Broadcast update to trigger cart validation
+      localStorage.setItem('products_updated', Date.now().toString());
+      localStorage.removeItem('products_updated');
     } catch (err) {
       console.error(err);
       alert("Failed to save product: " + err.message);
@@ -187,7 +191,7 @@ export default function AdminMerch() {
       }
 
       fetchProducts();
-      alert("Product deleted successfully!");
+      alert("Product deleted successfully! It has been removed from all user carts.");
     } catch (err) {
       console.error(err);
       alert("Delete failed: " + err.message);
@@ -251,14 +255,16 @@ export default function AdminMerch() {
                 <p className="text-lg mb-2">₹{p.price}</p>
                 
                 {/* Stock Info */}
-                <div className="mb-4 text-sm">
-                  <p className="font-medium mb-1">Stock: {getTotalStock(p)} total</p>
-                  {p.sizeType !== "none" && (
+                <div className="mb-4 text-sm border-t pt-3">
+                  <p className="font-medium mb-2">Stock: {getTotalStock(p)} total</p>
+                  {p.sizeType === "none" ? (
+                    <p className="text-gray-600">Quantity: {p.quantity || 0}</p>
+                  ) : (
                     <div className="text-xs text-gray-600 space-y-1">
                       {Object.entries(p.stock || {}).map(([size, qty]) => (
                         <div key={size} className="flex justify-between">
-                          <span>{size}:</span>
-                          <span className={qty === 0 ? "text-red-600" : ""}>{qty}</span>
+                          <span className="font-medium">{size}:</span>
+                          <span className={qty === 0 ? "text-red-600 font-medium" : ""}>{qty}</span>
                         </div>
                       ))}
                     </div>
@@ -397,6 +403,9 @@ export default function AdminMerch() {
                       </div>
                     ))}
                   </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Total stock: {Object.values(formData.stock).reduce((sum, val) => sum + val, 0)}
+                  </p>
                 </div>
               )}
 
@@ -417,6 +426,9 @@ export default function AdminMerch() {
                       </div>
                     ))}
                   </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Total stock: {Object.values(formData.stock).reduce((sum, val) => sum + val, 0)}
+                  </p>
                 </div>
               )}
 

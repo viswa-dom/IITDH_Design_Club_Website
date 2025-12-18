@@ -26,7 +26,7 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('abhikalpa_cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Listen for product deletions
+  // Listen for product deletions and updates
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === 'deleted_product' && e.newValue) {
@@ -38,15 +38,83 @@ export const CartProvider = ({ children }) => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // Validate cart against current stock
+  useEffect(() => {
+    const validateCart = async () => {
+      try {
+        const res = await fetch("/api/products");
+        const products = await res.json();
+        
+        setCart(prev => {
+          const newCart = { ...prev };
+          let hasChanges = false;
+
+          Object.keys(newCart).forEach(key => {
+            const cartItem = newCart[key];
+            const product = products.find(p => p._id === cartItem._id);
+
+            // Remove if product doesn't exist anymore
+            if (!product) {
+              delete newCart[key];
+              hasChanges = true;
+              return;
+            }
+
+            // Check stock availability
+            let maxStock = 0;
+            if (product.sizeType === "none") {
+              maxStock = product.quantity || 0;
+            } else {
+              maxStock = product.stock?.[cartItem.selectedSize] || 0;
+            }
+
+            // Remove if out of stock
+            if (maxStock === 0) {
+              delete newCart[key];
+              hasChanges = true;
+            }
+            // Adjust quantity if exceeds stock
+            else if (cartItem.quantity > maxStock) {
+              newCart[key] = {
+                ...cartItem,
+                quantity: maxStock
+              };
+              hasChanges = true;
+            }
+          });
+
+          return hasChanges ? newCart : prev;
+        });
+      } catch (err) {
+        console.error("Cart validation error:", err);
+      }
+    };
+
+    // Validate on mount and periodically
+    validateCart();
+    const interval = setInterval(validateCart, 30000); // Every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Remove deleted products from cart
   const removeDeletedProducts = (deletedProductId) => {
     setCart(prev => {
       const newCart = { ...prev };
+      let hasChanges = false;
+
       Object.keys(newCart).forEach(key => {
-        if (key.startsWith(deletedProductId)) {
+        // Check if key contains the deleted product ID
+        if (key.startsWith(deletedProductId) || key === deletedProductId) {
           delete newCart[key];
+          hasChanges = true;
         }
       });
+
+      if (hasChanges) {
+        alert("Some items were removed from your cart because they are no longer available.");
+      }
+
       return newCart;
     });
   };

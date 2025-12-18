@@ -161,10 +161,26 @@ export default function Merch() {
                       <p className="text-sm text-gray-600 font-light mb-3">{item.description}</p>
                       <p className="text-2xl font-light mb-2">₹{item.price}</p>
                       
-                      {/* Stock Info */}
-                      <p className="text-sm text-gray-500 mb-4">
-                        {totalStock} in stock
-                      </p>
+                      {/* Stock Info - Show size-wise for sized items */}
+                      {item.sizeType === "none" ? (
+                        <p className="text-sm text-gray-500 mb-4">
+                          {totalStock} in stock
+                        </p>
+                      ) : (
+                        <div className="text-sm text-gray-500 mb-4">
+                          <p className="font-medium mb-1">Stock by size:</p>
+                          <div className="flex gap-2 flex-wrap">
+                            {item.sizes?.map(size => {
+                              const sizeStock = item.stock?.[size] || 0;
+                              return (
+                                <span key={size} className={sizeStock === 0 ? "text-red-500" : ""}>
+                                  {size}: {sizeStock}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Size Selection */}
                       {!isOutOfStock && item.sizeType !== "none" && (
@@ -184,12 +200,11 @@ export default function Merch() {
                                     selectedSize === size
                                       ? "bg-black text-white border-black"
                                       : isSizeOutOfStock
-                                      ? "border-gray-300 text-gray-300 cursor-not-allowed"
+                                      ? "border-gray-300 text-gray-300 cursor-not-allowed line-through"
                                       : "border-black hover:bg-black hover:text-white"
                                   }`}
                                 >
                                   {size}
-                                  {isSizeOutOfStock && <span className="ml-1 text-xs">(0)</span>}
                                 </button>
                               );
                             })}

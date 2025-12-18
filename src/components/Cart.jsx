@@ -2,8 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package } from "lucide-react";
 import { useCart } from "./CartContext";
 import { QRCodeSVG } from "qrcode.react";
-import { useState } from "react";
-import { useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -20,19 +19,98 @@ export default function Cart() {
   }, []);
 
   const cartItems = getCartItems();
-  const subtotal = getCartTotal();
-  const shipping = subtotal > 999 ? 0 : 50; // Free shipping over ₹999
-  const tax = Math.round(subtotal * 0.18); // 18% GST
-  const total = subtotal + shipping + tax;
+  const total = getCartTotal();
   const [showQR, setShowQR] = useState(false);
-  const iframeRef = useRef(null);
+  const [products, setProducts] = useState([]);
 
+  // Fetch current product data to validate stock
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("/api/products");
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+      }
+    };
+    fetchProducts();
+  }, []);
 
-  const handleCheckout = () => {
-    // TODO: Implement checkout logic
-    // alert("Checkout functionality coming soon!");
+  // Get max available quantity for a cart item
+  const getMaxQuantity = (item) => {
+    const product = products.find(p => p._id === item._id);
+    if (!product) return 0;
+
+    if (product.sizeType === "none") {
+      return product.quantity || 0;
+    }
+
+    return product.stock?.[item.selectedSize] || 0;
+  };
+
+  const handleQuantityIncrease = (item) => {
+    const maxQty = getMaxQuantity(item);
+    if (item.quantity >= maxQty) {
+      alert("No more stock available for this item");
+      return;
+    }
+    updateQuantity(item.id, item.quantity + 1);
+  };
+
+  const handleQuantityDecrease = (item) => {
+    if (item.quantity <= 1) {
+      deleteItem(item.id);
+      return;
+    }
+    updateQuantity(item.id, item.quantity - 1);
+  };
+
+  const handleCheckout = async () => {
     if (total <= 0) return;
+
+    // Prepare items for stock deduction
+    const items = cartItems.map(item => ({
+      productId: item._id,
+      size: item.selectedSize,
+      quantity: item.quantity,
+      sizeType: item.sizeType
+    }));
+
     setShowQR(true);
+  };
+
+  const handlePaymentComplete = async () => {
+    // Deduct stock after payment
+    const items = cartItems.map(item => ({
+      productId: item._id,
+      size: item.selectedSize,
+      quantity: item.quantity,
+      sizeType: item.sizeType
+    }));
+
+    try {
+      const res = await fetch("/api/deduct-stock", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ items })
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to deduct stock");
+      }
+
+      // Clear cart after successful payment
+      clearCart();
+      setShowQR(false);
+      alert("Payment successful! Your order has been confirmed.");
+      navigate("/merch");
+    } catch (err) {
+      console.error("Stock deduction error:", err);
+      alert("There was an issue processing your order. Please contact support.");
+    }
   };
 
   return (
@@ -94,75 +172,91 @@ export default function Cart() {
               
               {/* Cart Items - Takes 2 columns */}
               <div className="lg:col-span-2 space-y-4">
-                {cartItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-white text-black rounded-sm shadow-2xl p-6"
-                  >
-                    <div className="flex gap-6 items-start">
-                      {/* Image */}
-                      <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center">
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-full object-cover rounded-sm"
-                          />
-                        ) : (
-                          <Package className="w-8 h-8 text-gray-400" />
-                        )}
-                      </div>
+                {cartItems.map((item) => {
+                  const maxQty = getMaxQuantity(item);
+                  const isOverStock = item.quantity > maxQty;
 
-                      {/* Item Details */}
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h3 className="text-xl font-light mb-1">{item.name}</h3>
-                            <p className="text-sm text-gray-600 font-light">
-                              {item.description}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => deleteItem(item.id)}
-                            className="p-2 hover:bg-gray-100 rounded-sm transition-colors"
-                            title="Remove item"
-                          >
-                            <Trash2 className="w-5 h-5 text-gray-600 hover:text-red-600" />
-                          </button>
+                  return (
+                    <div
+                      key={item.id}
+                      className="bg-white text-black rounded-sm shadow-2xl p-6"
+                    >
+                      <div className="flex gap-6 items-start">
+                        {/* Image */}
+                        <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-sm flex-shrink-0 flex items-center justify-center">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover rounded-sm"
+                            />
+                          ) : (
+                            <Package className="w-8 h-8 text-gray-400" />
+                          )}
                         </div>
 
-                        <div className="flex items-center justify-between">
-                          {/* Quantity Controls */}
-                          <div className="flex items-center gap-3">
+                        {/* Item Details */}
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h3 className="text-xl font-light mb-1">{item.name}</h3>
+                              <p className="text-sm text-gray-600 font-light">
+                                {item.description}
+                              </p>
+                              {item.selectedSize && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                  Size: <span className="font-medium">{item.selectedSize}</span>
+                                </p>
+                              )}
+                              {isOverStock && (
+                                <p className="text-xs text-red-600 mt-1">
+                                  Only {maxQty} available in stock
+                                </p>
+                              )}
+                            </div>
                             <button
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="w-8 h-8 flex items-center justify-center border border-gray-300 hover:border-black hover:bg-black hover:text-white transition-colors rounded-sm"
+                              onClick={() => deleteItem(item.id)}
+                              className="p-2 hover:bg-gray-100 rounded-sm transition-colors"
+                              title="Remove item"
                             >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span className="text-lg font-light min-w-[2rem] text-center">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="w-8 h-8 flex items-center justify-center border border-gray-300 hover:border-black hover:bg-black hover:text-white transition-colors rounded-sm"
-                            >
-                              <Plus className="w-4 h-4" />
+                              <Trash2 className="w-5 h-5 text-gray-600 hover:text-red-600" />
                             </button>
                           </div>
 
-                          {/* Price */}
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500 font-light">
-                              ₹{item.price} × {item.quantity}
-                            </p>
-                            <p className="text-xl font-light">₹{item.price * item.quantity}</p>
+                          <div className="flex items-center justify-between">
+                            {/* Quantity Controls */}
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => handleQuantityDecrease(item)}
+                                className="w-8 h-8 flex items-center justify-center border border-gray-300 hover:border-black hover:bg-black hover:text-white transition-colors rounded-sm"
+                              >
+                                <Minus className="w-4 h-4" />
+                              </button>
+                              <span className="text-lg font-light min-w-[2rem] text-center">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() => handleQuantityIncrease(item)}
+                                disabled={item.quantity >= maxQty || maxQty === 0}
+                                className="w-8 h-8 flex items-center justify-center border border-gray-300 hover:border-black hover:bg-black hover:text-white transition-colors rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            {/* Price */}
+                            <div className="text-right">
+                              <p className="text-sm text-gray-500 font-light">
+                                ₹{item.price} × {item.quantity}
+                              </p>
+                              <p className="text-xl font-light">₹{item.price * item.quantity}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Order Summary - Takes 1 column */}
@@ -171,32 +265,9 @@ export default function Cart() {
                   <h2 className="text-2xl font-light mb-6">Order Summary</h2>
 
                   <div className="space-y-4 mb-6">
-                    <div className="flex justify-between font-light">
-                      <span className="text-gray-600">Subtotal</span>
-                      <span>₹{subtotal}</span>
-                    </div>
-                    <div className="flex justify-between font-light">
-                      <span className="text-gray-600">Shipping</span>
-                      <span className={shipping === 0 ? 'text-green-600' : ''}>
-                        {shipping === 0 ? 'FREE' : `₹${shipping}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between font-light">
-                      <span className="text-gray-600">Tax (GST 18%)</span>
-                      <span>₹{tax}</span>
-                    </div>
-
-                    {subtotal < 999 && subtotal > 0 && (
-                      <div className="text-sm text-gray-600 font-light border-t pt-4">
-                        Add ₹{999 - subtotal} more for free shipping
-                      </div>
-                    )}
-
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between text-xl font-light">
-                        <span>Total</span>
-                        <span>₹{total}</span>
-                      </div>
+                    <div className="flex justify-between text-xl font-light border-t pt-4">
+                      <span>Total</span>
+                      <span>₹{total}</span>
                     </div>
                   </div>
 
@@ -220,47 +291,56 @@ export default function Cart() {
           )}
         </div>
       </section>
+      
       {showQR && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center px-4">
-        <div className="bg-white text-black rounded-sm p-6 shadow-2xl w-full max-w-sm">
-          <h2 className="text-2xl font-light mb-4 text-center">Scan to Pay</h2>
-  
-          {/* QR Code */}
-          <div className="flex justify-center mb-4">
-            <QRCodeSVG
-              value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${total}&cu=INR&tn=Merch Purchase`}
-              size={200}
-            />
-          </div>
-  
-          <p className="text-center text-gray-600 mb-4 font-light">
-            Total Amount: ₹{total}
-          </p>
-
-          {/* Google Form Link */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-600 mb-3 font-light">
-              To confirm your order, please fill out this Google Form after payment:
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center px-4 z-50">
+          <div className="bg-white text-black rounded-sm p-6 shadow-2xl w-full max-w-sm">
+            <h2 className="text-2xl font-light mb-4 text-center">Scan to Pay</h2>
+    
+            {/* QR Code */}
+            <div className="flex justify-center mb-4">
+              <QRCodeSVG
+                value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${total}&cu=INR&tn=Merch Purchase`}
+                size={200}
+              />
+            </div>
+    
+            <p className="text-center text-gray-600 mb-4 font-light">
+              Total Amount: ₹{total}
             </p>
 
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSc5J91_s9f-MMi0krfTXYxCkp-T8ND75UxUg1Uwop8JPfiBSw/viewform"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mb-4 inline-block px-4 py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
-            >
-              Open Google Form
-            </a>
-          </div>
+            {/* Google Form Link */}
+            <div className="mt-6 text-center">
+              <p className="text-gray-600 mb-3 font-light">
+                After payment, please fill out this form to confirm your order:
+              </p>
 
-          <button
-            onClick={() => setShowQR(false)}
-            className="w-full py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
-          >
-            Close
-          </button>
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSc5J91_s9f-MMi0krfTXYxCkp-T8ND75UxUg1Uwop8JPfiBSw/viewform"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mb-4 inline-block px-4 py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
+              >
+                Open Order Form
+              </a>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handlePaymentComplete}
+                className="flex-1 py-2 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors font-light"
+              >
+                Payment Done
+              </button>
+              <button
+                onClick={() => setShowQR(false)}
+                className="flex-1 py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
       )}
     </div>
   );
