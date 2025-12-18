@@ -62,9 +62,7 @@ const ResetPassword = lazy(() =>
   import("./components/ResetPassword").then(m => ({ default: m.ResetPassword }))
 );
 
-const Confirmation = lazy(() =>
-  import("./components/OrderConfirmation").then(m => ({ default: m.OrderConfirmation }))
-);
+const Confirmation = lazy(() => import("./components/OrderConfirmation"));
 
 const Admin = lazy(() =>
   import("./components/Admin").then(m => ({ default: m.default || m.Admin }))

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function Confirmation() {
+export default function OrderConfirmation() {
 
   const [done, setDone] = useState(false);
 
