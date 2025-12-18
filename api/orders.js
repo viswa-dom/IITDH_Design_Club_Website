@@ -1,64 +1,42 @@
 import clientPromise from "../src/lib/mongodb";
 
-export async function GET() {
+export default async function handler(req, res) {
+
   try {
     const client = await clientPromise;
     const db = client.db("abhikalpa");
     const orders = db.collection("orders");
 
-    const result = await orders.find().sort({ createdAt: -1 }).toArray();
+    if (req.method === "GET") {
 
-    return new Response(
-      JSON.stringify(result),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" }
-      }
-    );
+      const result = await orders.find({})
+                                 .sort({ createdAt: -1 })
+                                 .toArray();
 
-  } catch (e) {
-    return new Response(
-      JSON.stringify({ error: e.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      }
-    );
-  }
-}
+      return res.status(200).json(result);
+    }
 
-export async function POST(req) {
-  try {
-    const body = await req.json();
+    if (req.method === "POST") {
 
-    const client = await clientPromise;
-    const db = client.db("abhikalpa");
-    const orders = db.collection("orders");
+      const order = {
+        ...req.body,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        status: "Pending"
+      };
 
-    const order = {
-      ...body,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      status: "Pending",
-    };
+      const result = await orders.insertOne(order);
 
-    const result = await orders.insertOne(order);
+      return res.status(201).json({
+        _id: result.insertedId,
+        ...order
+      });
+    }
 
-    return new Response(
-      JSON.stringify({ _id: result.insertedId, ...order }),
-      {
-        status: 201,
-        headers: { "Content-Type": "application/json" }
-      }
-    );
+    res.status(405).json({ message: "Method Not Allowed" });
 
   } catch (e) {
-    return new Response(
-      JSON.stringify({ error: e.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      }
-    );
+    console.error("ORDER API ERROR:", e);
+    res.status(500).json({ error: e.message });
   }
 }
