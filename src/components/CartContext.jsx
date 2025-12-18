@@ -29,9 +29,9 @@ export const CartProvider = ({ children }) => {
   const addToCart = (item) => {
     setCart(prev => ({
       ...prev,
-      [item.id]: {
+      [item._id]: {
         ...item,
-        quantity: (prev[item.id]?.quantity || 0) + 1
+        quantity: (prev[item._id]?.quantity || 0) + 1
       }
     }));
   };

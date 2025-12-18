@@ -4,9 +4,6 @@ import { createClient } from "@supabase/supabase-js";
 // Initialize MongoDB client directly in the API route
 const uri = process.env.MONGODB_URI;
 let cachedClient = null;
-console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
-console.log("SUPABASE_SERVICE_ROLE_KEY:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-
 async function connectToDatabase() {
   if (cachedClient) {
     return cachedClient;
