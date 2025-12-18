@@ -69,9 +69,22 @@ export default function Cart() {
   const handleCheckout = async () => {
     if (total <= 0) return;
 
-    // Create order in database
+    // Prepare items for stock deduction
+    const items = cartItems.map(item => ({
+      productId: item._id,
+      size: item.selectedSize,
+      quantity: item.quantity,
+      sizeType: item.sizeType
+    }));
+
+    setShowQR(true);
+  };
+
+  const handlePaymentComplete = async () => {
+    // Deduct stock after payment
+    // build order payload
     const orderPayload = {
-      transactionId: crypto.randomUUID(),
+      transactionId: crypto.randomUUID(),     // temporary ID until google form sync
       items: cartItems.map(item => ({
         productId: item._id,
         name: item.name,
@@ -79,8 +92,7 @@ export default function Cart() {
         quantity: item.quantity,
         price: item.price
       })),
-      total,
-      status: "Pending Payment"
+      total
     };
 
     try {
@@ -93,17 +105,26 @@ export default function Cart() {
       if (!orderRes.ok) {
         throw new Error("Order failed to save");
       }
+      const res = await fetch("/api/deduct-stock", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ items })
+      });
 
-      const orderData = await orderRes.json();
-      
-      // Store order ID and cart items in sessionStorage for confirmation page
-      sessionStorage.setItem('pendingOrderId', orderData._id);
-      sessionStorage.setItem('pendingCartItems', JSON.stringify(cartItems));
+      if (!res.ok) {
+        throw new Error("Failed to deduct stock");
+      }
 
-      setShowQR(true);
+      // Clear cart after successful payment
+      clearCart();
+      setShowQR(false);
+      alert("Payment successful! Your order has been confirmed.");
+      navigate("/merch");
     } catch (err) {
-      console.error("Order creation error:", err);
-      alert("There was an issue creating your order. Please try again.");
+      console.error("Stock deduction error:", err);
+      alert("There was an issue processing your order. Please contact support.");
     }
   };
 
@@ -317,16 +338,18 @@ export default function Cart() {
               >
                 Open Order Form
               </a>
-
-              <p className="text-xs text-gray-500 mt-4 font-light">
-                You will be redirected back after submitting the form
-              </p>
             </div>
 
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2">
+              <button
+                onClick={handlePaymentComplete}
+                className="flex-1 py-2 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors font-light"
+              >
+                Payment Done
+              </button>
               <button
                 onClick={() => setShowQR(false)}
-                className="flex-1 py-2 border border-black text-black rounded-sm hover:bg-gray-100 transition-colors font-light"
+                className="flex-1 py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
               >
                 Cancel
               </button>
