@@ -94,13 +94,13 @@ const handleImageUpload = (e) => {
 
       setFormData(prev => ({
         ...prev,
-        images: [data.data.url], // ✅ VALID PUBLIC URL
+        images: [data.data.url], // VALID PUBLIC URL
       }));
     } catch (err) {
       console.error(err);
       alert("Image upload failed. Use image URL instead.");
     } finally {
-      setUploadingImage(false); // ✅ CORRECT PLACE
+      setUploadingImage(false);
     }
   };
 

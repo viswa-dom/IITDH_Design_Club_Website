@@ -148,12 +148,18 @@ export default function AdminOrders() {
                       {order.transactionId || order._id}
                     </td>
                     <td className="p-4 font-light">
-                      <div>{order.name}</div>
-                      <div className="text-sm text-gray-600">{order.email}</div>
+                      <div className="font-medium">
+                        {order.customer?.name || "Pending Form Submission"}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {order.customer?.email || "pending@form.submission"}
+                      </div>
                     </td>
+
                     <td className="p-4 font-light text-sm">
-                      {order.phone}
+                      {order.customer?.phone || "N/A"}
                     </td>
+
                     <td className="p-4 font-light text-sm">
                       {order.items?.map((item, idx) => (
                         <div key={idx} className="mb-1">
