@@ -1,6 +1,5 @@
-// /api/sync-order.js
-import dbConnect from "@/lib/dbConnect";
-import Order from "@/models/Order";
+// api/sync-order.js
+import clientPromise from "@/lib/mongodb";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -13,35 +12,42 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing fields" });
   }
 
-  // 🔑 NORMALIZE INPUT
   transactionId = transactionId.trim();
 
-  await dbConnect();
+  try {
+    const client = await clientPromise;
+    const db = client.db("abhikalpa");
+    const orders = db.collection("orders");
 
-  const order = await Order.findOneAndUpdate(
-    { transactionId },
-    {
-      $set: {
-        customer: {
-          name,
-          email,
-          phone,
+    const result = await orders.findOneAndUpdate(
+      { transactionId },
+      {
+        $set: {
+          customer: {
+            name,
+            email,
+            phone,
+          },
+          status: "Confirmed",
+          updatedAt: new Date(),
         },
-        status: "Confirmed",
       },
-    },
-    { new: true }
-  );
+      { returnDocument: "after" }
+    );
 
-  if (!order) {
-    return res.status(404).json({
-      error: "Order not found for transactionId",
-      transactionId,
+    if (!result.value) {
+      return res.status(404).json({
+        error: "Order not found for transactionId",
+        transactionId,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      orderId: result.value._id,
     });
+  } catch (err) {
+    console.error("SYNC ORDER ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
-
-  return res.json({
-    success: true,
-    orderId: order._id,
-  });
 }
