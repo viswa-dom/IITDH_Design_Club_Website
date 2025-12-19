@@ -46,9 +46,13 @@ export default function Admin() {
           {/* ORDERS */}
           <div className="bg-white text-black p-6 rounded-sm shadow-2xl">
             <h2 className="text-2xl font-light mb-4">Orders</h2>
-            <button className="w-full py-2 border border-black hover:bg-black hover:text-white font-light transition">
+            <button
+              onClick={() => navigate("/admin/orders")}
+              className="w-full py-2 border border-black hover:bg-black hover:text-white font-light transition"
+            >
               View Orders
             </button>
+
           </div>
 
         </div>
