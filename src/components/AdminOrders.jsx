@@ -6,14 +6,16 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
-  const [newStatus, setNewStatus] = useState("");
+  const [newStatus, setNewStatus] = useState("Pending");
 
   const fetchOrders = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
-        setError("No session found - Please log in");
+        setError("No session found. Please log in.");
         setLoading(false);
         return;
       }
@@ -29,17 +31,10 @@ export default function AdminOrders() {
       }
 
       const data = await res.json();
-      
-      if (Array.isArray(data)) {
-        setOrders(data);
-      } else {
-        console.error("API returned non-array data:", data);
-        setOrders([]);
-      }
-      
+      setOrders(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
-      console.error("Error fetching orders:", err);
+      console.error("Fetch orders error:", err);
       setError(err.message);
       setOrders([]);
     } finally {
@@ -53,7 +48,9 @@ export default function AdminOrders() {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
         alert("Please log in");
@@ -68,7 +65,7 @@ export default function AdminOrders() {
         },
         body: JSON.stringify({
           _id: orderId,
-          status: status,
+          status,
         }),
       });
 
@@ -77,9 +74,9 @@ export default function AdminOrders() {
       }
 
       setEditingOrder(null);
-      await fetchOrders();
+      fetchOrders();
     } catch (err) {
-      console.error("Error updating order:", err);
+      console.error("Update status error:", err);
       alert("Failed to update order status");
     }
   };
@@ -87,23 +84,15 @@ export default function AdminOrders() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-xl font-light tracking-wide">Loading orders...</p>
+        <p className="text-xl font-light">Loading orders…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
-        <div className="text-center">
-          <p className="text-xl font-light text-red-500 mb-6 tracking-wide">Error: {error}</p>
-          <button 
-            onClick={fetchOrders}
-            className="px-6 py-2 border border-white hover:bg-white hover:text-black transition-all duration-300 tracking-wide text-sm"
-          >
-            Retry
-          </button>
-        </div>
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-red-500">{error}</p>
       </div>
     );
   }
@@ -111,91 +100,111 @@ export default function AdminOrders() {
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-24 px-6">
       <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide mb-3">
-            Orders Management
-          </h1>
-          <p className="text-gray-400 font-light">
-            View and manage customer orders
-          </p>
-        </div>
+        <h1 className="text-4xl font-light mb-10">Orders Management</h1>
 
         {orders.length === 0 ? (
-          <p className="text-gray-400 text-center py-24 tracking-wide">
-            No orders yet.
-          </p>
+          <p className="text-gray-400 text-center py-24">No orders yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full bg-white text-black">
               <thead>
                 <tr className="border-b-2 border-gray-300">
-                  <th className="p-4 text-left font-light tracking-wide">Order ID</th>
-                  <th className="p-4 text-left font-light tracking-wide">Customer</th>
-                  <th className="p-4 text-left font-light tracking-wide">Contact</th>
-                  <th className="p-4 text-left font-light tracking-wide">Items</th>
-                  <th className="p-4 text-center font-light tracking-wide">Total</th>
-                  <th className="p-4 text-center font-light tracking-wide">Status</th>
-                  <th className="p-4 text-center font-light tracking-wide">Date</th>
-                  <th className="p-4 text-center font-light tracking-wide">Actions</th>
+                  <th className="p-4 text-left">Order</th>
+                  <th className="p-4 text-left">Customer</th>
+                  <th className="p-4 text-left">Contact</th>
+                  <th className="p-4 text-left">Items</th>
+                  <th className="p-4 text-center">Total</th>
+                  <th className="p-4 text-center">Status</th>
+                  <th className="p-4 text-center">Date</th>
+                  <th className="p-4 text-center">Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {orders.map(order => (
-                  <tr key={order._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="p-4 font-light text-sm">
-                      {order.transactionId || order._id}
+                {orders.map((order) => (
+                  <tr
+                    key={order._id}
+                    className="border-b border-gray-200 hover:bg-gray-50"
+                  >
+                    {/* ORDER IDS */}
+                    <td className="p-4 text-sm">
+                      <div className="text-xs text-gray-500">Order ID</div>
+                      <div className="break-all">{order._id}</div>
+
+                      {order.upiTransactionId && (
+                        <>
+                          <div className="mt-2 text-xs text-gray-500">
+                            UPI Transaction ID
+                          </div>
+                          <div className="break-all text-green-700">
+                            {order.upiTransactionId}
+                          </div>
+                        </>
+                      )}
                     </td>
-                    <td className="p-4 font-light">
+
+                    {/* CUSTOMER */}
+                    <td className="p-4">
                       <div className="font-medium">
-                        {order.customer?.name || "Pending Form Submission"}
+                        {order.customer?.name || "Awaiting payment confirmation"}
                       </div>
                       <div className="text-sm text-gray-600">
-                        {order.customer?.email || "pending@form.submission"}
+                        {order.customer?.email || ""}
                       </div>
                     </td>
 
-                    <td className="p-4 font-light text-sm">
-                      {order.customer?.phone || "N/A"}
+                    {/* CONTACT */}
+                    <td className="p-4 text-sm">
+                      {order.customer?.phone || "—"}
                     </td>
 
-                    <td className="p-4 font-light text-sm">
+                    {/* ITEMS */}
+                    <td className="p-4 text-sm">
                       {order.items?.map((item, idx) => (
-                        <div key={idx} className="mb-1">
+                        <div key={idx}>
                           {item.name} × {item.quantity}
                           {item.size && ` (${item.size})`}
                         </div>
                       ))}
                     </td>
-                    <td className="p-4 text-center font-light">
-                      ₹{order.total}
-                    </td>
+
+                    {/* TOTAL */}
+                    <td className="p-4 text-center">₹{order.total}</td>
+
+                    {/* STATUS */}
                     <td className="p-4 text-center">
-                      <span className={`inline-block px-3 py-1 text-sm tracking-wide ${
-                        order.status === "Completed" 
-                          ? "bg-green-100 text-green-600"
-                          : order.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-600"
-                          : order.status === "Shipped"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-600"
-                      }`}>
-                        {order.status || "Pending"}
+                      <span
+                        className={`px-3 py-1 text-sm rounded ${
+                          order.status === "Pending"
+                            ? "bg-yellow-100 text-yellow-600"
+                            : order.status === "Confirmed"
+                            ? "bg-purple-100 text-purple-600"
+                            : order.status === "Processing"
+                            ? "bg-blue-100 text-blue-600"
+                            : order.status === "Shipped"
+                            ? "bg-indigo-100 text-indigo-600"
+                            : "bg-green-100 text-green-600"
+                        }`}
+                      >
+                        {order.status}
                       </span>
                     </td>
-                    <td className="p-4 text-center font-light text-sm">
-                      {new Date(order.createdAt || order.date).toLocaleDateString()}
+
+                    {/* DATE */}
+                    <td className="p-4 text-center text-sm">
+                      {new Date(order.createdAt).toLocaleDateString()}
                     </td>
+
+                    {/* ACTION */}
                     <td className="p-4 text-center">
                       <button
                         onClick={() => {
                           setEditingOrder(order._id);
-                          setNewStatus(order.status || "Pending");
+                          setNewStatus(order.status);
                         }}
-                        className="px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300 text-sm tracking-wide font-light"
+                        className="px-4 py-2 border border-black hover:bg-black hover:text-white text-sm"
                       >
-                        Update Status
+                        Update
                       </button>
                     </td>
                   </tr>
@@ -206,39 +215,35 @@ export default function AdminOrders() {
         )}
       </div>
 
-      {/* Status Update Modal */}
+      {/* STATUS MODAL */}
       {editingOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 px-4">
-          <div className="bg-white text-black p-8 max-w-md w-full">
-            <h2 className="text-2xl font-light mb-6 tracking-wide">
-              Update Order Status
-            </h2>
-            
-            <div className="mb-6">
-              <label className="block mb-2 font-light tracking-wide">Status</label>
-              <select
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value)}
-                className="w-full p-2 border border-gray-300 font-light"
-              >
-                <option value="Pending">Pending</option>
-                <option value="Processing">Processing</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white text-black p-8 w-full max-w-md">
+            <h2 className="text-2xl mb-6">Update Order Status</h2>
+
+            <select
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value)}
+              className="w-full p-2 border mb-6"
+            >
+              <option>Pending</option>
+              <option>Confirmed</option>
+              <option>Processing</option>
+              <option>Shipped</option>
+              <option>Completed</option>
+              <option>Cancelled</option>
+            </select>
 
             <div className="flex gap-3">
               <button
                 onClick={() => updateOrderStatus(editingOrder, newStatus)}
-                className="flex-1 px-4 py-2 bg-black text-white hover:bg-gray-800 transition-all duration-300 tracking-wide font-light"
+                className="flex-1 bg-black text-white py-2"
               >
                 Update
               </button>
               <button
                 onClick={() => setEditingOrder(null)}
-                className="flex-1 px-4 py-2 border border-black hover:bg-black hover:text-white transition-all duration-300 tracking-wide font-light"
+                className="flex-1 border border-black py-2"
               >
                 Cancel
               </button>

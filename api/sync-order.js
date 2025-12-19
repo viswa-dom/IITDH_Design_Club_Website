@@ -14,40 +14,28 @@ export default async function handler(req, res) {
 
   transactionId = transactionId.trim();
 
-  try {
-    const client = await clientPromise;
-    const db = client.db("abhikalpa");
-    const orders = db.collection("orders");
+  const client = await clientPromise;
+  const db = client.db("abhikalpa");
+  const orders = db.collection("orders");
 
-    const result = await orders.findOneAndUpdate(
-      { transactionId },
-      {
-        $set: {
-          customer: {
-            name,
-            email,
-            phone,
-          },
-          status: "Confirmed",
-          updatedAt: new Date(),
-        },
+  const result = await orders.findOneAndUpdate(
+    { transactionId },
+    {
+      $set: {
+        customer: { name, email, phone },
+        status: "Confirmed",
+        updatedAt: new Date(),
       },
-      { returnDocument: "after" }
-    );
+    },
+    { returnDocument: "after" }
+  );
 
-    if (!result.value) {
-      return res.status(404).json({
-        error: "Order not found for transactionId",
-        transactionId,
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      orderId: result.value._id,
+  if (!result.value) {
+    return res.status(404).json({
+      error: "Order not found",
+      transactionId,
     });
-  } catch (err) {
-    console.error("SYNC ORDER ERROR:", err);
-    return res.status(500).json({ error: err.message });
   }
+
+  return res.json({ success: true });
 }
