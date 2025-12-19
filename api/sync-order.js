@@ -7,30 +7,41 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { transactionId, name, email, phone } = req.body;
+  let { transactionId, name, email, phone } = req.body;
 
   if (!transactionId || !name || !email || !phone) {
     return res.status(400).json({ error: "Missing fields" });
   }
+
+  // 🔑 NORMALIZE INPUT
+  transactionId = transactionId.trim();
 
   await dbConnect();
 
   const order = await Order.findOneAndUpdate(
     { transactionId },
     {
-      customer: {
-        name,
-        email,
-        phone,
+      $set: {
+        customer: {
+          name,
+          email,
+          phone,
+        },
+        status: "Confirmed",
       },
-      status: "Confirmed",
     },
     { new: true }
   );
 
   if (!order) {
-    return res.status(404).json({ error: "Order not found" });
+    return res.status(404).json({
+      error: "Order not found for transactionId",
+      transactionId,
+    });
   }
 
-  res.json({ success: true });
+  return res.json({
+    success: true,
+    orderId: order._id,
+  });
 }
