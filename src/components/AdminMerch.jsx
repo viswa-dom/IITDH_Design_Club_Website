@@ -71,45 +71,42 @@ export default function AdminMerch() {
     });
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+const handleImageUpload = (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
+  setUploadingImage(true);
+
+  const reader = new FileReader();
+  reader.onloadend = async () => {
     try {
-      setUploadingImage(true);
-      
-      // Convert to base64
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result;
-        
-        // Upload to imgbb (free image hosting)
-        const formData = new FormData();
-        formData.append('image', base64.split(',')[1]);
-        
-        const response = await fetch('https://api.imgbb.com/1/upload?key=YOUR_IMGBB_API_KEY', {
-          method: 'POST',
-          body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          setFormData(prev => ({
-            ...prev,
-            images: [data.data.url]
-          }));
-        }
-      };
-      
-      reader.readAsDataURL(file);
+      const base64 = reader.result.split(",")[1];
+      const fd = new FormData();
+      fd.append("image", base64);
+
+      const res = await fetch(
+        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+        { method: "POST", body: fd }
+      );
+
+      const data = await res.json();
+      if (!data.success) throw new Error("Upload failed");
+
+      setFormData(prev => ({
+        ...prev,
+        images: [data.data.url], // ✅ VALID PUBLIC URL
+      }));
     } catch (err) {
-      console.error("Upload error:", err);
-      alert("Image upload failed. Please use URL instead.");
+      console.error(err);
+      alert("Image upload failed. Use image URL instead.");
     } finally {
-      setUploadingImage(false);
+      setUploadingImage(false); // ✅ CORRECT PLACE
     }
   };
+
+  reader.readAsDataURL(file);
+};
+
 
   const openModal = (product = null) => {
     if (product) {
@@ -353,9 +350,13 @@ export default function AdminMerch() {
               <div>
                 <label className="block mb-2 font-light tracking-wide">Product Image</label>
                 
-                {formData.images[0] && (
+                {formData.images[0]?.startsWith("http") && (
                   <div className="mb-3 relative">
-                    <img src={formData.images[0]} alt="Preview" className="w-full h-48 object-cover rounded" />
+                    <img
+                      src={formData.images[0]}
+                      alt="Preview"
+                      className="w-full h-48 object-cover rounded"
+                    />
                     <button
                       onClick={() => setFormData({ ...formData, images: [""] })}
                       className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
