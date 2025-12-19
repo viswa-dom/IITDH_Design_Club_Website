@@ -19,17 +19,18 @@ export default async function handler(req, res) {
   const orders = db.collection("orders");
 
   const result = await orders.findOneAndUpdate(
-    { transactionId },
+    { transactionId: null },   // 🔑 unpaid order only
     {
       $set: {
+        transactionId,
         customer: { name, email, phone },
-        status: "Confirmed",
+        status: "Processing",
         updatedAt: new Date(),
       },
     },
     { returnDocument: "after" }
   );
-
+  
   if (!result.value) {
     return res.status(404).json({
       error: "Order not found",

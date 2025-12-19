@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     const order = {
       items: req.body.items,
       total: req.body.total,
-      transactionId: req.body.transactionId.trim(),
+      transactionId: null,      // ✅ IMPORTANT
       customer: null,
       status: "Pending",
       createdAt: new Date(),

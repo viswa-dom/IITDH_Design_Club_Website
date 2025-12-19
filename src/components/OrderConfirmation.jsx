@@ -4,38 +4,35 @@ import { CheckCircle, Loader } from "lucide-react";
 
 export default function OrderConfirmation() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState("processing"); // processing | success | error
+  const [status, setStatus] = useState("processing");
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     async function finalizeOrder() {
       try {
-        // 1️⃣ Read cart from localStorage (CartContext stores as object with key 'abhikalpa_cart')
         const raw = localStorage.getItem("abhikalpa_cart");
         if (!raw) {
           setStatus("error");
-          setErrorMessage("No cart data found. Please try placing your order again.");
+          setErrorMessage("No cart data found.");
           return;
         }
 
         const cartObject = JSON.parse(raw);
-        
-        // Convert cart object to array
         const cart = Object.values(cartObject);
 
         if (cart.length === 0) {
           setStatus("error");
-          setErrorMessage("Cart is empty. Please add items before checking out.");
+          setErrorMessage("Cart is empty.");
           return;
         }
 
-        // 2️⃣ Calculate total
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const total = cart.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
 
-        // 3️⃣ Create order in database
-        // Note: Customer info (name, email, phone) will be added later via Google Form sync
+        // ✅ DO NOT CREATE transactionId HERE
         const orderPayload = {
-          transactionId: crypto.randomUUID(), // temporary ID until google form sync
           items: cart.map(item => ({
             productId: item._id,
             name: item.name,
@@ -45,10 +42,8 @@ export default function OrderConfirmation() {
           })),
           total,
           status: "Pending",
-          // Placeholder customer info - will be updated when Google Form is synced
-          name: "Pending Form Submission",
-          email: "pending@form.submission",
-          phone: "N/A"
+          customer: null,          // ✅ explicitly empty
+          transactionId: null      // ✅ explicitly empty
         };
 
         const orderRes = await fetch("/api/orders", {
@@ -64,7 +59,7 @@ export default function OrderConfirmation() {
         const orderData = await orderRes.json();
         console.log("Order created:", orderData);
 
-        // 4️⃣ Build items list for stock deduction
+        // Deduct stock
         const items = cart.map(item => ({
           productId: item._id,
           quantity: item.quantity,
@@ -72,12 +67,9 @@ export default function OrderConfirmation() {
           sizeType: item.sizeType || "none",
         }));
 
-        // 5️⃣ Call API to deduct stock
         const stockRes = await fetch("/api/deduct-stock", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ items })
         });
 
@@ -85,13 +77,7 @@ export default function OrderConfirmation() {
           throw new Error("Failed to deduct stock");
         }
 
-        const stockData = await stockRes.json();
-        console.log("Stock deducted:", stockData);
-
-        // 6️⃣ Clear cart after successful order
         localStorage.removeItem("abhikalpa_cart");
-
-        // Trigger cart update event for CartContext
         window.dispatchEvent(new Event("storage"));
 
         setStatus("success");
@@ -99,7 +85,7 @@ export default function OrderConfirmation() {
       } catch (err) {
         console.error("Order finalization failed:", err);
         setStatus("error");
-        setErrorMessage(err.message || "An unexpected error occurred. Please contact support.");
+        setErrorMessage(err.message || "Unexpected error");
       }
     }
 
@@ -115,7 +101,7 @@ export default function OrderConfirmation() {
             <Loader className="w-16 h-16 mx-auto mb-6 animate-spin text-gray-400" />
             <h1 className="text-4xl font-light mb-4">Processing Your Order</h1>
             <p className="text-gray-400 text-lg font-light mb-8">
-              Please wait while we finalize your order and reserve your items...
+              Please wait while we finalize your order...
             </p>
           </>
         )}
@@ -123,13 +109,13 @@ export default function OrderConfirmation() {
         {status === "success" && (
           <>
             <CheckCircle className="w-16 h-16 mx-auto mb-6 text-green-500" />
-            <h1 className="text-4xl font-light mb-4">Order Confirmed!</h1>
+            <h1 className="text-4xl font-light mb-4">Order Placed</h1>
             <p className="text-gray-400 text-lg font-light mb-8">
-              Thank you for your purchase! Your order has been confirmed and stock has been reserved. We will contact you soon with further details.
+              Please complete payment and submit the confirmation form.
             </p>
             <button
               onClick={() => navigate("/")}
-              className="px-6 py-3 bg-white text-black rounded-sm hover:bg-gray-200 transition font-light"
+              className="px-6 py-3 bg-white text-black hover:bg-gray-200 transition"
             >
               Return Home
             </button>
@@ -138,27 +124,12 @@ export default function OrderConfirmation() {
 
         {status === "error" && (
           <>
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-500/10 flex items-center justify-center">
-              <span className="text-3xl">⚠️</span>
-            </div>
-            <h1 className="text-4xl font-light mb-4 text-red-500">Order Error</h1>
+            <h1 className="text-4xl font-light mb-4 text-red-500">
+              Order Error
+            </h1>
             <p className="text-gray-400 text-lg font-light mb-8">
               {errorMessage}
             </p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => navigate("/cart")}
-                className="px-6 py-3 bg-white text-black rounded-sm hover:bg-gray-200 transition font-light"
-              >
-                Back to Cart
-              </button>
-              <button
-                onClick={() => navigate("/")}
-                className="px-6 py-3 border border-white text-white rounded-sm hover:bg-white hover:text-black transition font-light"
-              >
-                Return Home
-              </button>
-            </div>
           </>
         )}
 

@@ -131,13 +131,13 @@ export default function AdminOrders() {
                       <div className="text-xs text-gray-500">Order ID</div>
                       <div className="break-all">{order._id}</div>
 
-                      {order.upiTransactionId && (
+                      {order.transactionId && (
                         <>
                           <div className="mt-2 text-xs text-gray-500">
                             UPI Transaction ID
                           </div>
                           <div className="break-all text-green-700">
-                            {order.upiTransactionId}
+                            {order.transactionId}
                           </div>
                         </>
                       )}
