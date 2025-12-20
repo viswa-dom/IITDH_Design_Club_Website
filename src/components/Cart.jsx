@@ -153,7 +153,7 @@ export default function Cart() {
   };
 
   // Build Google Form URL with pre-filled data
-  const googleFormUrl = `https://docs.google.com/forms/d/e/1FAIpQLSc71mc6dGYWo-OBjdE2yV_Z7IfAjFMYRZZmPWUi7HMNweMeaQ/viewform?usp=pp_url&entry.840138153=${encodeURIComponent(orderReference || '')}&emailAddress=${encodeURIComponent(userEmail || '')}`;
+  const googleFormUrl = `https://docs.google.com/forms/d/e/1FAIpQLSc71mc6dGYWo-OBjdE2yV_Z7IfAjFMYRZZmPWUi7HMNweMeaQ/viewform?usp=pp_url&entry.1286492949=${encodeURIComponent(userEmail)}&entry.840138153=${encodeURIComponent(orderReference)}`;
 
   return (
     <div className="min-h-screen bg-black text-white">
