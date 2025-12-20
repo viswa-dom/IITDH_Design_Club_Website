@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Package, ShoppingBag, User, Mail, Phone, UserCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
-const Profile = ({ user }) => {
+const Profile = () => {
+  const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -10,22 +12,44 @@ const Profile = ({ user }) => {
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 
+  // Get current user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
+
   // Fetch user's orders
   useEffect(() => {
     const fetchOrders = async () => {
       if (!user?.email) {
+        console.log('No user email found');
         setLoading(false);
         return;
       }
 
       try {
+        console.log('Fetching orders for email:', user.email);
         const res = await fetch(`/api/user-orders?email=${encodeURIComponent(user.email)}`);
         
         if (!res.ok) {
+          const errorText = await res.text();
+          console.error('API error:', res.status, errorText);
           throw new Error('Failed to fetch orders');
         }
 
         const data = await res.json();
+        console.log('Fetched orders:', data);
+        console.log('Number of orders:', data.length);
+        
+        // Log order details for debugging
+        if (data.length > 0) {
+          console.log('First order customer data:', data[0].customer);
+          console.log('First order status:', data[0].status);
+        }
+        
         setOrders(Array.isArray(data) ? data : []);
         setError(null);
       } catch (err) {
@@ -41,8 +65,16 @@ const Profile = ({ user }) => {
   }, [user?.email]);
 
   // Get user metadata
-  const username = user?.user_metadata?.username || user?.user_metadata?.name || 'User';
+  const username = user?.user_metadata?.username || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
   const phone = user?.user_metadata?.phone || 'Not provided';
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -96,6 +128,9 @@ const Profile = ({ user }) => {
               <div className="text-center py-12 text-gray-500">
                 <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-30" />
                 <p className="font-light mb-4">No orders yet</p>
+                <p className="text-sm text-gray-400 mb-6 font-light">
+                  Orders will appear here after you complete a purchase
+                </p>
                 <a
                   href="/merch"
                   className="inline-block px-6 py-3 bg-black text-white font-light hover:bg-gray-900 transition-colors rounded-sm"
@@ -114,7 +149,7 @@ const Profile = ({ user }) => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2 flex-wrap">
                           <p className="font-light text-lg">
-                            Order #{order.transactionId || order._id?.slice(-8)}
+                            Order #{order.transactionRef || order.transactionId || order._id?.slice(-8)}
                           </p>
                           <span className={`px-3 py-1 text-xs rounded-sm ${
                             order.status === 'Completed' || order.status === 'Delivered'
@@ -150,9 +185,14 @@ const Profile = ({ user }) => {
                             ))}
                           </ul>
                         </div>
-                        {order.name && (
+                        {order.customer?.name && (
                           <p className="text-sm text-gray-600 mt-3 font-light">
-                            Delivered to: {order.name}
+                            Delivered to: {order.customer.name}
+                          </p>
+                        )}
+                        {order.customer?.phone && order.customer.phone !== "N/A" && (
+                          <p className="text-sm text-gray-600 font-light">
+                            Contact: {order.customer.phone}
                           </p>
                         )}
                       </div>
