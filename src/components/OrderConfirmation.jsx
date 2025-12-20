@@ -1,23 +1,30 @@
 import { useNavigate } from "react-router-dom";
 import { Check, ShoppingBag, Home } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useCart } from "./CartContext";
 
 export default function OrderConfirmation() {
   const navigate = useNavigate();
   const [showContent, setShowContent] = useState(false);
   const { clearCart } = useCart();
+  const hasCleared = useRef(false);
 
   useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // Clear the cart since order is confirmed
-    clearCart();
-    
-    // Trigger animation after a brief delay
-    setTimeout(() => setShowContent(true), 100);
-  }, [clearCart]);
+    // Only run once when component mounts
+    if (!hasCleared.current) {
+      // Scroll to top only once
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Clear the cart since order is confirmed
+      clearCart();
+      
+      // Trigger animation after a brief delay
+      setTimeout(() => setShowContent(true), 100);
+      
+      // Mark as cleared so this doesn't run again
+      hasCleared.current = true;
+    }
+  }, []); // Empty dependency array - only run on mount
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-20 px-6">
