@@ -27,6 +27,11 @@ export default function Cart() {
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  useEffect(() => {
+    setCheckoutTotal(getCartTotal());
+  }, [cartItems]);
+
+
   // Fetch current product data to validate stock
   useEffect(() => {
     const fetchProducts = async () => {
@@ -71,8 +76,7 @@ export default function Cart() {
   };
 
   const handleCheckout = async () => {
-    if (checkoutTotal <= 0) return;
-    setCheckoutTotal(checkoutTotal);
+    if (checkoutTotal === null || checkoutTotal <= 0) return;
     setIsProcessing(true);
 
     try {
@@ -89,7 +93,7 @@ export default function Cart() {
             size: item.selectedSize || null,
             sizeType: item.sizeType || "none"
           })),
-          total: total,
+          total: checkoutTotal,
         }),
       });
 
