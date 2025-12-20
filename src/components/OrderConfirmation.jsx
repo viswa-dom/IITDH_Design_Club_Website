@@ -1,18 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import { Check, ShoppingBag, Home } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useCart } from "./CartContext";
 
 export default function OrderConfirmation() {
   const navigate = useNavigate();
   const [showContent, setShowContent] = useState(false);
+  const { clearCart } = useCart();
 
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
+    // Clear the cart since order is confirmed
+    clearCart();
+    
     // Trigger animation after a brief delay
     setTimeout(() => setShowContent(true), 100);
-  }, []);
+  }, [clearCart]);
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-20 px-6">
