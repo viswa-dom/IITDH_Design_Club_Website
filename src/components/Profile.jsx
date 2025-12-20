@@ -1,59 +1,48 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useEffect, useState } from 'react';
 import { Package, ShoppingBag, User, Mail, Phone, UserCircle } from 'lucide-react';
 
-const Profile = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+const Profile = ({ user }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 
-  // Mock data for orders (replace with actual data from backend later)
-  const mockOrders = [
-    {
-      id: 1,
-      date: '2025-11-01',
-      items: ['Design Club T-Shirt', 'Sticker Pack'],
-      status: 'Delivered',
-      total: 799,
-    },
-    {
-      id: 2,
-      date: '2025-10-15',
-      items: ['Design Club Hoodie'],
-      status: 'Processing',
-      total: 1499,
-    },
-  ];
+  // Fetch user's orders
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!user?.email) {
+        setLoading(false);
+        return;
+      }
 
-  // Mock recommendations (replace with actual recommendation logic later)
-  const recommendations = [
-    {
-      id: 1,
-      name: 'Design Club Cap',
-      price: 399,
-      image: 'https://placeholder.com/150',
-    },
-    {
-      id: 2,
-      name: 'Design Club Notebook',
-      price: 299,
-      image: 'https://placeholder.com/150',
-    },
-  ];
+      try {
+        const res = await fetch(`/api/user-orders?email=${encodeURIComponent(user.email)}`);
+        
+        if (!res.ok) {
+          throw new Error('Failed to fetch orders');
+        }
 
-  // Get user metadata (username and phone from sign up)
+        const data = await res.json();
+        setOrders(Array.isArray(data) ? data : []);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+        setError(err.message);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user?.email]);
+
+  // Get user metadata
   const username = user?.user_metadata?.username || user?.user_metadata?.name || 'User';
   const phone = user?.user_metadata?.phone || 'Not provided';
-
-  const handleAddToCart = (item) => {
-    // TODO: Implement add to cart functionality
-    console.log('Adding to cart:', item);
-    alert(`${item.name} added to cart!`);
-  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -85,94 +74,97 @@ const Profile = () => {
         </div>
       </section>
 
-      {/* Main Content */}
+      {/* Order History */}
       <section className="px-6 pb-20">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Order History - Takes 2 columns */}
-            <div className="lg:col-span-2">
-              <div className="bg-white text-black rounded-sm p-8 shadow-2xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <Package className="w-6 h-6" />
-                  <h2 className="text-3xl font-light">Order History</h2>
-                </div>
-
-                {mockOrders.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-light">No orders yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {mockOrders.map((order) => (
-                      <div 
-                        key={order.id} 
-                        className="border border-gray-200 rounded-sm p-6 hover:border-black transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <p className="font-light text-lg">Order #{order.id}</p>
-                              <span className={`px-3 py-1 text-xs rounded-sm ${
-                                order.status === 'Delivered' 
-                                  ? 'bg-green-50 text-green-700 border border-green-200' 
-                                  : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                              }`}>
-                                {order.status}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-500 mb-3 font-light">{order.date}</p>
-                            <ul className="space-y-1">
-                              {order.items.map((item, index) => (
-                                <li key={index} className="text-sm text-gray-700 font-light">
-                                  • {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-light">₹{order.total}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+          <div className="bg-white text-black rounded-sm p-8 shadow-2xl">
+            <div className="flex items-center gap-3 mb-6">
+              <Package className="w-6 h-6" />
+              <h2 className="text-3xl font-light">Order History</h2>
             </div>
 
-            {/* Recommendations Sidebar */}
-            <aside className="lg:col-span-1">
-              <div className="bg-white text-black rounded-sm p-8 shadow-2xl sticky top-24">
-                <h3 className="text-2xl font-light mb-6">Recommended for You</h3>
-                <div className="space-y-6">
-                  {recommendations.map((item) => (
-                    <div key={item.id} className="group">
-                      <div className="flex gap-4 items-start">
-                        <div className="w-20 h-20 bg-gray-200 rounded-sm flex-shrink-0 overflow-hidden">
-                          <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-light text-base mb-1">{item.name}</p>
-                          <p className="text-sm text-gray-600 font-light mb-3">₹{item.price}</p>
-                          <button 
-                            onClick={() => handleAddToCart(item)}
-                            className="w-full bg-black text-white px-4 py-2 rounded-sm text-sm font-light hover:bg-gray-900 transition-colors"
-                          >
-                            Add to Cart
-                          </button>
-                        </div>
-                      </div>
-                      {item.id !== recommendations[recommendations.length - 1].id && (
-                        <div className="border-b border-gray-200 mt-6" />
-                      )}
-                    </div>
-                  ))}
-                </div>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+                <p className="text-gray-500 font-light">Loading orders...</p>
               </div>
-            </aside>
-
+            ) : error ? (
+              <div className="text-center py-12 text-red-500">
+                <p className="font-light">Failed to load orders: {error}</p>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                <p className="font-light mb-4">No orders yet</p>
+                <a
+                  href="/merch"
+                  className="inline-block px-6 py-3 bg-black text-white font-light hover:bg-gray-900 transition-colors rounded-sm"
+                >
+                  Start Shopping
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <div 
+                    key={order._id} 
+                    className="border border-gray-200 rounded-sm p-6 hover:border-black transition-colors"
+                  >
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                          <p className="font-light text-lg">
+                            Order #{order.transactionId || order._id?.slice(-8)}
+                          </p>
+                          <span className={`px-3 py-1 text-xs rounded-sm ${
+                            order.status === 'Completed' || order.status === 'Delivered'
+                              ? 'bg-green-50 text-green-700 border border-green-200' 
+                              : order.status === 'Shipped'
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : order.status === 'Confirmed'
+                              ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                              : order.status === 'Processing'
+                              ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                              : 'bg-gray-50 text-gray-700 border border-gray-200'
+                          }`}>
+                            {order.status || 'Pending'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-3 font-light">
+                          {new Date(order.createdAt || order.date).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-gray-700">Items:</p>
+                          <ul className="space-y-1">
+                            {order.items?.map((item, index) => (
+                              <li key={index} className="text-sm text-gray-700 font-light">
+                                • {item.name} 
+                                {item.size && ` (${item.size})`}
+                                {item.quantity > 1 && ` × ${item.quantity}`}
+                                <span className="text-gray-500"> - ₹{item.price * item.quantity}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {order.name && (
+                          <p className="text-sm text-gray-600 mt-3 font-light">
+                            Delivered to: {order.name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right md:text-right">
+                        <p className="text-sm text-gray-500 font-light mb-1">Total</p>
+                        <p className="text-2xl font-light">₹{order.total}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
