@@ -71,8 +71,8 @@ export default function Cart() {
   };
 
   const handleCheckout = async () => {
-    if (total <= 0) return;
-    setCheckoutTotal(total);
+    if (checkoutTotal <= 0) return;
+    setCheckoutTotal(checkoutTotal);
     setIsProcessing(true);
 
     try {
