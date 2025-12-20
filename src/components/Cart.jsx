@@ -140,6 +140,8 @@ export default function Cart() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  console.log("Render - showQR:", showQR, "orderReference:", orderReference, "orderId:", orderId);
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
