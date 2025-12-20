@@ -30,6 +30,7 @@ export default function Cart() {
   useEffect(() => {
     setCheckoutTotal(getCartTotal());
   }, [cartItems]);
+  console.log("Rendered — showQR:", showQR);
 
 
   // Fetch current product data to validate stock
