@@ -46,47 +46,65 @@ export default async function handler(req, res) {
     const db = client.db("abhikalpa");
     const orders = db.collection("orders");
 
-    // Strategy 1: Find the most recent order with no customer data
-    // Orders are created within seconds/minutes of form submission
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    // Check if this transaction ID was already used
+    const existingOrder = await orders.findOne({ transactionId });
     
+    if (existingOrder && existingOrder.customer) {
+      console.log('Transaction ID already used:', transactionId);
+      return res.status(409).json({
+        error: "Transaction ID already used",
+        message: "This transaction ID has already been linked to an order. If you believe this is an error, please contact support.",
+        transactionId,
+        orderId: existingOrder._id.toString()
+      });
+    }
+
+    // Find the most recent pending order without customer data
     const matchedOrder = await orders.findOne(
       {
-        customer: null,              // No customer data yet
-        createdAt: { $gte: tenMinutesAgo }  // Created in last 10 minutes
+        customer: null,     // No customer data yet
+        status: "Pending"   // Only match pending orders
       },
-      { sort: { createdAt: -1 } }    // Get the most recent one
+      { sort: { createdAt: -1 } }  // Get the most recent one
     );
 
     if (!matchedOrder) {
-      console.log('No recent order found without customer data');
+      console.log('No pending order found');
       return res.status(404).json({
         error: "No pending order found",
-        message: "Could not find a recent order to match with this form submission. The order may have been created more than 10 minutes ago.",
+        message: "Could not find any pending order. Please create an order first before submitting payment confirmation.",
         transactionId
       });
     }
 
-    // Update the order with customer info and transaction ID
+    // Update the order with transaction ID and customer info
     const result = await orders.findOneAndUpdate(
       { _id: matchedOrder._id },
       {
         $set: {
           transactionId,
           customer: { name, email, phone: phone || "N/A" },
-          status: "Confirmed",  // Changed from "Processing" to "Confirmed"
+          status: "Confirmed",
           updatedAt: new Date(),
         },
       },
       { returnDocument: "after" }
     );
 
-    console.log('Order updated successfully:', result.value._id);
+    console.log('Order updated successfully:', result.value._id, 'with transaction ID:', transactionId);
 
     return res.status(200).json({ 
       success: true,
       orderId: result.value._id.toString(),
-      message: "Order updated successfully"
+      transactionId: result.value.transactionId,
+      message: "Payment confirmed! Your order has been updated.",
+      order: {
+        id: result.value._id.toString(),
+        items: result.value.items,
+        total: result.value.total,
+        status: result.value.status,
+        transactionId: result.value.transactionId
+      }
     });
 
   } catch (err) {

@@ -81,6 +81,25 @@ export default function AdminOrders() {
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return "bg-yellow-100 text-yellow-700";
+      case "Confirmed":
+        return "bg-green-100 text-green-700";
+      case "Processing":
+        return "bg-blue-100 text-blue-700";
+      case "Shipped":
+        return "bg-indigo-100 text-indigo-700";
+      case "Completed":
+        return "bg-emerald-100 text-emerald-700";
+      case "Cancelled":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -173,19 +192,7 @@ export default function AdminOrders() {
 
                     {/* STATUS */}
                     <td className="p-4 text-center">
-                      <span
-                        className={`px-3 py-1 text-sm rounded ${
-                          order.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-600"
-                            : order.status === "Confirmed"
-                            ? "bg-purple-100 text-purple-600"
-                            : order.status === "Processing"
-                            ? "bg-blue-100 text-blue-600"
-                            : order.status === "Shipped"
-                            ? "bg-indigo-100 text-indigo-600"
-                            : "bg-green-100 text-green-600"
-                        }`}
-                      >
+                      <span className={`px-3 py-1 text-sm rounded ${getStatusColor(order.status)}`}>
                         {order.status}
                       </span>
                     </td>
@@ -226,12 +233,12 @@ export default function AdminOrders() {
               onChange={(e) => setNewStatus(e.target.value)}
               className="w-full p-2 border mb-6"
             >
-              <option>Pending</option>
-              <option>Confirmed</option>
-              <option>Processing</option>
-              <option>Shipped</option>
-              <option>Completed</option>
-              <option>Cancelled</option>
+              <option value="Pending">Pending</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Processing">Processing</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
             </select>
 
             <div className="flex gap-3">
