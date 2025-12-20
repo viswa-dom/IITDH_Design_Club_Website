@@ -24,15 +24,19 @@ export default function OrderConfirmation() {
     setIsValidSession(true);
     sessionStorage.removeItem('order_confirmed');
     
-    // Scroll to top when component mounts
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
     // Clear the cart since order is confirmed
     clearCart();
     
     // Trigger animation after a brief delay
     setTimeout(() => setShowContent(true), 100);
   }, [navigate, clearCart]);
+
+  // Separate effect for scrolling - only runs once
+  useEffect(() => {
+    if (isValidSession) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [isValidSession]);
 
   // Don't render anything if session is invalid
   if (!isValidSession) {
