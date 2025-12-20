@@ -103,9 +103,6 @@ export default function Cart() {
       setOrderId(data._id);
       setShowQR(true);
       
-      // ✅ Clear cart immediately after order is created
-      clearCart();
-      
     } catch (err) {
       console.error("Checkout error:", err);
       alert("Failed to create order. Please try again.");
@@ -114,10 +111,26 @@ export default function Cart() {
     }
   };
 
-  const handleClosePayment = () => {
+  const handleClosePayment = async () => {
+    // Delete the placeholder order before closing
+    if (orderId) {
+      try {
+        await fetch("/api/orders", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ _id: orderId }),
+        });
+      } catch (err) {
+        console.error("Failed to delete placeholder order:", err);
+      }
+    }
+
+    // Reset state but DON'T clear cart
     setShowQR(false);
     setOrderReference(null);
-    navigate('/merch');
+    setOrderId(null);
+    
+    // Cart remains intact so user can try again
   };
 
   const copyToClipboard = (text) => {
@@ -308,97 +321,94 @@ export default function Cart() {
       
       {/* Payment Modal with Order Reference */}
       {showQR && orderReference && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-50 backdrop-blur-md overflow-y-auto">
-          <div 
-            className="bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 text-white rounded-2xl shadow-2xl w-full max-w-lg my-auto max-h-[90vh] overflow-y-auto border-2 border-gray-600 animate-slideUp"
-          >
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center px-4 z-50 overflow-y-auto backdrop-blur-sm">
+          <div className="bg-white text-black rounded-lg shadow-2xl w-full max-w-lg my-8 max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-gray-800 to-gray-700 backdrop-blur-lg px-6 py-5 border-b-2 border-gray-600 z-10 rounded-t-2xl">
-              <h2 className="text-2xl font-light text-center tracking-wide">Payment Instructions</h2>
+            <div className="bg-gradient-to-br from-gray-900 to-black text-white px-8 py-6 border-b border-gray-800">
+              <h2 className="text-2xl font-light text-center">Payment Instructions</h2>
             </div>
 
-            <div className="p-6 space-y-5">
+            <div className="p-8">
               {/* Order Reference - MOST IMPORTANT */}
-              <div className="bg-gradient-to-br from-gray-700 to-gray-800 border-2 border-gray-600 rounded-xl p-5 shadow-xl animate-fadeIn" style={{animationDelay: '0.1s'}}>
+              <div className="bg-gray-50 border-2 border-gray-800 rounded-lg p-5 mb-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <p className="text-sm font-semibold text-white">Your Order Reference</p>
+                  <p className="text-sm font-semibold text-gray-900">Your Order Reference</p>
                 </div>
                 
-                <div className="flex items-center gap-2 bg-gray-900/70 backdrop-blur p-3 rounded-lg border-2 border-gray-600">
-                  <code className="flex-1 text-sm font-mono text-white break-all select-all font-semibold tracking-wider">{orderReference}</code>
+                <div className="flex items-center gap-2 bg-white p-3 rounded-md border-2 border-gray-300 shadow-inner">
+                  <code className="flex-1 text-base font-mono text-gray-900 break-all select-all font-semibold">{orderReference}</code>
                   <button
                     onClick={() => copyToClipboard(orderReference)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0"
+                    className="p-2 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
                     title="Copy to clipboard"
                   >
                     {copied ? (
-                      <Check className="w-5 h-5 text-green-400" />
+                      <Check className="w-5 h-5 text-gray-800" />
                     ) : (
-                      <Copy className="w-5 h-5 text-gray-200" />
+                      <Copy className="w-5 h-5 text-gray-600" />
                     )}
                   </button>
                 </div>
                 
-                <div className="flex items-start gap-2 mt-3 bg-yellow-500/10 backdrop-blur-sm border-2 border-yellow-600/30 p-3 rounded-lg">
-                  <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-start gap-2 mt-3 bg-gray-900 text-white p-3 rounded-md">
+                  <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  <p className="text-xs font-medium text-yellow-100">
+                  <p className="text-xs font-medium text-gray-200">
                     IMPORTANT: Save this reference number! You'll need it to confirm your payment.
                   </p>
                 </div>
               </div>
 
               {/* QR Code */}
-              <div className="bg-white rounded-xl p-6 shadow-lg animate-fadeIn" style={{animationDelay: '0.2s'}}>
+              <div className="bg-gray-50 rounded-lg p-6 mb-6 border-2 border-gray-200">
                 <p className="text-center text-sm text-gray-600 mb-4 font-medium">
                   Scan QR code to pay
                 </p>
-                <div className="flex justify-center bg-white p-4 rounded-xl">
+                <div className="flex justify-center bg-white p-4 rounded-lg shadow-inner border border-gray-200">
                   <QRCodeSVG
                     value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${total}&cu=INR&tn=Order ${orderReference}`}
                     size={200}
-                    className="w-full max-w-[200px] h-auto"
                   />
                 </div>
                 <div className="text-center mt-4">
-                  <span className="text-gray-500 text-xs uppercase tracking-wider">Amount</span>
-                  <p className="text-3xl font-light text-gray-900 mt-1">₹{total}</p>
+                  <span className="text-gray-500 text-sm">Amount</span>
+                  <p className="text-3xl font-light text-gray-900">₹{total}</p>
                 </div>
               </div>
 
               {/* Next Steps */}
-              <div className="bg-gradient-to-br from-gray-700 to-gray-800 border-2 border-gray-600 rounded-xl p-5 shadow-xl animate-fadeIn" style={{animationDelay: '0.3s'}}>
+              <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-5 mb-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-white">Next Steps</h3>
+                  <h3 className="font-semibold text-gray-900">Next Steps</h3>
                 </div>
                 
-                <ol className="space-y-3 text-sm text-gray-100">
+                <ol className="space-y-3 text-sm text-gray-700">
                   <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-white text-black rounded-full flex items-center justify-center text-xs font-bold shadow-md">1</span>
+                    <span className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs font-semibold">1</span>
                     <span className="pt-0.5">Complete the UPI payment using the QR code above</span>
                   </li>
                   <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-white text-black rounded-full flex items-center justify-center text-xs font-bold shadow-md">2</span>
+                    <span className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs font-semibold">2</span>
                     <span className="pt-0.5">Note your UPI Transaction ID from the payment app</span>
                   </li>
                   <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-white text-black rounded-full flex items-center justify-center text-xs font-bold shadow-md">3</span>
+                    <span className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs font-semibold">3</span>
                     <span className="pt-0.5">Click the button below to open the confirmation form</span>
                   </li>
                   <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-white text-black rounded-full flex items-center justify-center text-xs font-bold shadow-md">4</span>
-                    <span className="pt-0.5">Enter your details, <strong className="text-white">Order Reference</strong>, and UPI Transaction ID</span>
+                    <span className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs font-semibold">4</span>
+                    <span className="pt-0.5">Enter your details, <strong>Order Reference</strong>, and UPI Transaction ID</span>
                   </li>
                 </ol>
               </div>
@@ -412,16 +422,14 @@ export default function Cart() {
                   // Set session token for confirmation page access
                   sessionStorage.setItem('order_confirmed', 'true');
                 }}
-                className="block w-full py-4 bg-white text-black text-center rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-[1.02] animate-fadeIn"
-                style={{animationDelay: '0.4s'}}
+                className="block w-full py-4 bg-black text-white text-center rounded-lg hover:bg-gray-900 transition-all duration-200 font-medium mb-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Open Payment Confirmation Form →
               </a>
 
               <button
                 onClick={handleClosePayment}
-                className="w-full py-4 border-2 border-gray-500 text-gray-100 rounded-xl hover:bg-gray-700 hover:border-gray-400 transition-all duration-300 font-medium animate-fadeIn"
-                style={{animationDelay: '0.5s'}}
+                className="w-full py-4 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
                 Close
               </button>
