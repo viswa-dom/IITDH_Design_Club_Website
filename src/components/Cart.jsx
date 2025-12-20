@@ -19,7 +19,7 @@ export default function Cart() {
   }, []);
 
   const cartItems = getCartItems();
-  const total = getCartTotal();
+  const [checkoutTotal, setCheckoutTotal] = useState(null);
   const [showQR, setShowQR] = useState(false);
   const [orderReference, setOrderReference] = useState(null);
   const [orderId, setOrderId] = useState(null);
@@ -72,6 +72,7 @@ export default function Cart() {
 
   const handleCheckout = async () => {
     if (total <= 0) return;
+    setCheckoutTotal(total);
     setIsProcessing(true);
 
     try {
@@ -294,7 +295,7 @@ export default function Cart() {
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between text-xl font-light border-t pt-4">
                       <span>Total</span>
-                      <span>₹{total}</span>
+                      <span>₹{checkoutTotal}</span>
                     </div>
                   </div>
 
@@ -367,14 +368,14 @@ export default function Cart() {
                   </p>
                   <div className="flex justify-center bg-white p-4 rounded-xl">
                     <QRCodeSVG
-                      value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${total}&cu=INR&tn=Order ${orderReference}`}
+                      value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${checkoutTotal}&cu=INR&tn=Order ${orderReference}`}
                       size={200}
                       className="w-full max-w-[200px] h-auto"
                     />
                   </div>
                   <div className="text-center mt-4">
                     <span className="text-gray-500 text-xs uppercase tracking-wider">Amount</span>
-                    <p className="text-3xl font-light text-gray-900 mt-1">₹{total}</p>
+                    <p className="text-3xl font-light text-gray-900 mt-1">₹{checkoutTotal}</p>
                   </div>
                 </div>
 
