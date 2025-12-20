@@ -118,6 +118,7 @@ export default function AdminOrders() {
     // Prepare data for export
     const exportData = orders.map((order) => ({
       "Order ID": order._id,
+      "Order Reference": order.transactionRef || "N/A",  // ✅ ADDED
       "Transaction ID": order.transactionId || "N/A",
       "Customer Name": order.customer?.name || "Awaiting confirmation",
       "Email": order.customer?.email || "",
@@ -254,7 +255,19 @@ export default function AdminOrders() {
                     {/* ORDER IDS */}
                     <td className="p-4 text-sm">
                       <div className="text-xs text-gray-500">Order ID</div>
-                      <div className="break-all">{order._id}</div>
+                      <div className="break-all text-xs">{order._id}</div>
+
+                      {/* ✅ ADDED: Order Reference */}
+                      {order.transactionRef && (
+                        <>
+                          <div className="mt-2 text-xs text-gray-500">
+                            Order Reference
+                          </div>
+                          <div className="break-all text-blue-700 font-mono text-xs">
+                            {order.transactionRef}
+                          </div>
+                        </>
+                      )}
 
                       {order.transactionId && (
                         <>
@@ -394,6 +407,15 @@ export default function AdminOrders() {
                   <span className="font-medium">Order ID:</span>{" "}
                   <span className="text-xs">{deletingOrder._id}</span>
                 </div>
+                {/* ✅ ADDED: Show Order Reference in delete modal */}
+                {deletingOrder.transactionRef && (
+                  <div className="mb-2">
+                    <span className="font-medium">Order Reference:</span>{" "}
+                    <span className="text-xs font-mono text-blue-700">
+                      {deletingOrder.transactionRef}
+                    </span>
+                  </div>
+                )}
                 <div className="mb-2">
                   <span className="font-medium">Customer:</span>{" "}
                   {deletingOrder.customer?.name || "N/A"}

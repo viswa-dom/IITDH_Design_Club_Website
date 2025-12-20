@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package, Copy, Check } from "lucide-react";
 import { useCart } from "./CartContext";
 import { QRCodeSVG } from "qrcode.react";
 import { useState, useEffect } from "react";
@@ -21,7 +21,10 @@ export default function Cart() {
   const cartItems = getCartItems();
   const total = getCartTotal();
   const [showQR, setShowQR] = useState(false);
+  const [orderReference, setOrderReference] = useState(null);
+  const [orderId, setOrderId] = useState(null);
   const [products, setProducts] = useState([]);
+  const [copied, setCopied] = useState(false);
 
   // Fetch current product data to validate stock
   useEffect(() => {
@@ -66,9 +69,46 @@ export default function Cart() {
     updateQuantity(item.id, item.quantity - 1);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (total <= 0) return;
-    setShowQR(true);
+
+    try {
+      // Create order in database
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cartItems.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            size: item.selectedSize || null
+          })),
+          total: total,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create order");
+      }
+
+      const data = await res.json();
+      
+      // Store order reference and show QR
+      setOrderReference(data.transactionRef);
+      setOrderId(data._id);
+      setShowQR(true);
+      
+    } catch (err) {
+      console.error("Checkout error:", err);
+      alert("Failed to create order. Please try again.");
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -250,51 +290,98 @@ export default function Cart() {
         </div>
       </section>
       
-      {showQR && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center px-4 z-50">
-          <div className="bg-white text-black rounded-sm p-6 shadow-2xl w-full max-w-sm">
-            <h2 className="text-2xl font-light mb-4 text-center">Scan to Pay</h2>
+      {/* Payment Modal with Order Reference */}
+      {showQR && orderReference && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center px-4 z-50 overflow-y-auto">
+          <div className="bg-white text-black rounded-sm p-8 shadow-2xl w-full max-w-md my-8">
+            <h2 className="text-3xl font-light mb-6 text-center">Payment Instructions</h2>
     
+            {/* Order Reference - MOST IMPORTANT */}
+            <div className="bg-green-50 border-2 border-green-500 rounded-sm p-4 mb-6">
+              <p className="text-sm text-green-800 font-medium mb-2">📋 Your Order Reference:</p>
+              <div className="flex items-center justify-between bg-white p-3 rounded border border-green-300">
+                <code className="text-lg font-mono text-green-700 break-all">{orderReference}</code>
+                <button
+                  onClick={() => copyToClipboard(orderReference)}
+                  className="ml-2 p-2 hover:bg-green-100 rounded transition-colors flex-shrink-0"
+                  title="Copy to clipboard"
+                >
+                  {copied ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Copy className="w-5 h-5 text-green-600" />
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-red-600 mt-2 font-medium">
+                ⚠️ SAVE THIS! You'll need it to confirm your payment.
+              </p>
+            </div>
+
             {/* QR Code */}
-            <div className="flex justify-center mb-4">
-              <QRCodeSVG
-                value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${total}&cu=INR&tn=Merch Purchase`}
-                size={200}
-              />
+            <div className="bg-gray-50 rounded-sm p-6 mb-6">
+              <p className="text-center text-sm text-gray-600 mb-4 font-light">
+                Scan QR code to pay ₹{total}
+              </p>
+              <div className="flex justify-center">
+                <QRCodeSVG
+                  value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${total}&cu=INR&tn=Order ${orderReference}`}
+                  size={200}
+                />
+              </div>
+              <p className="text-center text-2xl font-light mt-4">
+                ₹{total}
+              </p>
             </div>
-    
-            <p className="text-center text-gray-600 mb-4 font-light">
-              Total Amount: ₹{total}
+
+            {/* Next Steps */}
+            <div className="bg-blue-50 border border-blue-200 rounded-sm p-4 mb-6">
+              <h3 className="font-medium text-blue-900 mb-3">📝 Next Steps:</h3>
+              <ol className="space-y-2 text-sm text-blue-800">
+                <li className="flex gap-2">
+                  <span className="font-bold">1.</span>
+                  <span>Complete the UPI payment using the QR code above</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold">2.</span>
+                  <span>Note your UPI Transaction ID from the payment app</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold">3.</span>
+                  <span>Click the button below to open the confirmation form</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold">4.</span>
+                  <span>Enter your details, <strong>Order Reference</strong>, and UPI Transaction ID</span>
+                </li>
+              </ol>
+            </div>
+
+            {/* Form Link Button */}
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSc71mc6dGYWo-OBjdE2yV_Z7IfAjFMYRZZmPWUi7HMNweMeaQ/viewform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full py-3 bg-black text-white text-center rounded-sm hover:bg-gray-900 transition-colors font-medium mb-4"
+            >
+              Open Payment Confirmation Form →
+            </a>
+
+            <button
+              onClick={() => {
+                setShowQR(false);
+                setOrderReference(null);
+                clearCart();
+                navigate('/merch');
+              }}
+              className="w-full py-3 border border-gray-300 text-gray-700 rounded-sm hover:bg-gray-100 transition-colors font-light"
+            >
+              Close & Continue Shopping
+            </button>
+
+            <p className="text-xs text-gray-500 mt-4 text-center font-light">
+              Your order will be confirmed once we receive your payment details via the form
             </p>
-
-            {/* Google Form Link */}
-            <div className="mt-6 text-center">
-              <p className="text-gray-600 mb-3 font-light">
-                After payment, please fill out this form to confirm your order:
-              </p>
-
-              <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLSc71mc6dGYWo-OBjdE2yV_Z7IfAjFMYRZZmPWUi7HMNweMeaQ/viewform"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mb-4 inline-block px-4 py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
-              >
-                Open Order Form
-              </a>
-
-              <p className="text-xs text-gray-500 mt-2 font-light">
-                The form will redirect you to a confirmation page after submission
-              </p>
-            </div>
-
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={() => setShowQR(false)}
-                className="flex-1 py-2 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}

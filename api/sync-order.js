@@ -27,53 +27,59 @@ export default async function handler(req, res) {
   }
 
   try {
-    let { transactionId, name, email, phone } = req.body;
+    let { transactionId, name, email, phone, orderRef } = req.body;
 
     // Validate required fields
-    if (!transactionId || !name || !email) {
+    if (!transactionId || !name || !email || !orderRef) {
       return res.status(400).json({ 
         error: "Missing required fields",
-        received: { transactionId: !!transactionId, name: !!name, email: !!email, phone: !!phone }
+        required: ["transactionId", "name", "email", "orderRef"],
+        received: { 
+          transactionId: !!transactionId, 
+          name: !!name, 
+          email: !!email, 
+          phone: !!phone,
+          orderRef: !!orderRef
+        }
       });
     }
 
-    // Clean up transaction ID
+    // Clean up inputs
     transactionId = transactionId.trim();
+    orderRef = orderRef.trim();
     
-    console.log('Sync request received:', { transactionId, name, email, phone });
+    console.log('Sync request received:', { orderRef, transactionId, name, email, phone });
 
     const client = await connectToDatabase();
     const db = client.db("abhikalpa");
     const orders = db.collection("orders");
 
     // Check if this transaction ID was already used
-    const existingOrder = await orders.findOne({ transactionId });
+    const existingTxn = await orders.findOne({ transactionId });
     
-    if (existingOrder && existingOrder.customer) {
+    if (existingTxn) {
       console.log('Transaction ID already used:', transactionId);
       return res.status(409).json({
         error: "Transaction ID already used",
-        message: "This transaction ID has already been linked to an order. If you believe this is an error, please contact support.",
+        message: "This UPI transaction ID has already been linked to another order. Each transaction ID can only be used once.",
         transactionId,
-        orderId: existingOrder._id.toString()
+        orderId: existingTxn._id.toString()
       });
     }
 
-    // Find the most recent pending order without customer data
-    const matchedOrder = await orders.findOne(
-      {
-        customer: null,     // No customer data yet
-        status: "Pending"   // Only match pending orders
-      },
-      { sort: { createdAt: -1 } }  // Get the most recent one
-    );
+    // Find order by reference number (the exact order customer created)
+    const matchedOrder = await orders.findOne({
+      transactionRef: orderRef,
+      customer: null,
+      status: "Pending"
+    });
 
     if (!matchedOrder) {
-      console.log('No pending order found');
+      console.log('Order not found with reference:', orderRef);
       return res.status(404).json({
-        error: "No pending order found",
-        message: "Could not find any pending order. Please create an order first before submitting payment confirmation.",
-        transactionId
+        error: "Order not found",
+        message: "Could not find a pending order with this reference number. Please check your order reference and try again.",
+        orderRef
       });
     }
 
@@ -91,11 +97,12 @@ export default async function handler(req, res) {
       { returnDocument: "after" }
     );
 
-    console.log('Order updated successfully:', result.value._id, 'with transaction ID:', transactionId);
+    console.log('Order confirmed successfully:', result.value._id, 'with transaction ID:', transactionId);
 
     return res.status(200).json({ 
       success: true,
       orderId: result.value._id.toString(),
+      orderRef: result.value.transactionRef,
       transactionId: result.value.transactionId,
       message: "Payment confirmed! Your order has been updated.",
       order: {
@@ -103,6 +110,7 @@ export default async function handler(req, res) {
         items: result.value.items,
         total: result.value.total,
         status: result.value.status,
+        transactionRef: result.value.transactionRef,
         transactionId: result.value.transactionId
       }
     });

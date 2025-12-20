@@ -25,10 +25,14 @@ export default async function handler(req, res) {
     const db = client.db("abhikalpa");
     const orders = db.collection("orders");
 
+    // Generate unique order reference
+    const transactionRef = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
     const order = {
       items: req.body.items,
       total: req.body.total,
-      transactionId: null,
+      transactionRef: transactionRef,  // ✅ Order reference for customer
+      transactionId: null,              // UPI transaction ID (filled later)
       customer: null,
       status: "Pending",
       createdAt: new Date(),
@@ -36,7 +40,12 @@ export default async function handler(req, res) {
     };
 
     const result = await orders.insertOne(order);
-    return res.status(201).json({ _id: result.insertedId });
+    
+    // Return the transaction reference to show to customer
+    return res.status(201).json({ 
+      _id: result.insertedId,
+      transactionRef: transactionRef  // ✅ Customer needs this!
+    });
   }
 
   // GET - Fetch all orders (admin only)
