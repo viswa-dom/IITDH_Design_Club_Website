@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package, Copy, Check } from "lucide-react";
 import { useCart } from "./CartContext";
 import { QRCodeSVG } from "qrcode.react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -14,18 +14,22 @@ export default function Cart() {
     getCartTotal
   } = useCart();
 
-  useEffect(() => {
-    window.scrollTo({top: 0, behavior: 'smooth'});
-  }, []);
-
-  const cartItems = getCartItems();
-  const total = getCartTotal();
   const [showQR, setShowQR] = useState(false);
   const [orderReference, setOrderReference] = useState(null);
   const [orderId, setOrderId] = useState(null);
   const [products, setProducts] = useState([]);
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Use ref to persist modal state across re-renders
+  const isCheckoutInProgress = useRef(false);
+
+  useEffect(() => {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }, []);
+
+  const cartItems = getCartItems();
+  const total = getCartTotal();
 
   // Fetch current product data to validate stock
   useEffect(() => {
@@ -40,6 +44,13 @@ export default function Cart() {
     };
     fetchProducts();
   }, []);
+
+  // Persist modal state even when cart updates
+  useEffect(() => {
+    if (isCheckoutInProgress.current && !showQR) {
+      setShowQR(true);
+    }
+  }, [cartItems]); // Re-apply modal state when cart changes
 
   // Get max available quantity for a cart item
   const getMaxQuantity = (item) => {
@@ -73,9 +84,9 @@ export default function Cart() {
   const handleCheckout = async () => {
     if (total <= 0) return;
     setIsProcessing(true);
+    isCheckoutInProgress.current = true; // Mark checkout as in progress
 
     try {
-      // Create order in database (NO stock deduction yet - only when confirmed)
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -98,7 +109,6 @@ export default function Cart() {
 
       const data = await res.json();
       
-      // Store order reference and ID, then show QR
       setOrderReference(data.transactionRef);
       setOrderId(data._id);
       setShowQR(true);
@@ -106,13 +116,15 @@ export default function Cart() {
     } catch (err) {
       console.error("Checkout error:", err);
       alert("Failed to create order. Please try again.");
+      isCheckoutInProgress.current = false; // Reset on error
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleClosePayment = async () => {
-    // Delete the placeholder order when user closes the modal
+    isCheckoutInProgress.current = false; // Mark checkout as complete
+    
     if (orderId) {
       try {
         await fetch("/api/orders", {
@@ -126,12 +138,9 @@ export default function Cart() {
       }
     }
 
-    // Close modal and reset state
     setShowQR(false);
     setOrderReference(null);
     setOrderId(null);
-    // DO NOT clear cart - user might want to try again
-    // DO NOT navigate - stay on cart page
   };
 
   const copyToClipboard = (text) => {
@@ -140,8 +149,7 @@ export default function Cart() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  console.log("Render - showQR:", showQR, "orderReference:", orderReference, "orderId:", orderId);
-
+  // Rest of your component remains the same...
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
