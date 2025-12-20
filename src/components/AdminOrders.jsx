@@ -211,7 +211,7 @@ export default function AdminOrders() {
           <div>
             <h1 className="text-4xl font-light mb-2">Orders Management</h1>
             <p className="text-gray-400 text-sm">
-              💡 Orders are automatically confirmed when customers submit the payment form
+              Orders are automatically confirmed when customers submit the payment form
             </p>
           </div>
           
