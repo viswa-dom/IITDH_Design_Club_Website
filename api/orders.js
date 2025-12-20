@@ -32,6 +32,7 @@ export default async function handler(req, res) {
       items: req.body.items,
       total: req.body.total,
       transactionRef: transactionRef,  // ✅ Order reference for customer
+      userEmail: req.body.userEmail,    // ✅ FIXED: Store user's email for later sync
       transactionId: null,              // UPI transaction ID (filled later)
       customer: null,
       status: "Pending",
