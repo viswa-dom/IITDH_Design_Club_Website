@@ -321,8 +321,8 @@ export default function Cart() {
       
       {/* Payment Modal with Order Reference */}
       {showQR && orderReference && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center px-4 z-50 overflow-y-auto backdrop-blur-sm">
-          <div className="bg-white text-black rounded-lg shadow-2xl w-full max-w-lg my-8 overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center px-4 z-50 overflow-y-auto backdrop-blur-sm">
+          <div className="bg-white text-black rounded-lg shadow-2xl w-full max-w-lg my-8 max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="bg-gradient-to-br from-gray-900 to-black text-white px-8 py-6 border-b border-gray-800">
               <h2 className="text-2xl font-light text-center">Payment Instructions</h2>
