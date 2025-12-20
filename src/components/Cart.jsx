@@ -18,23 +18,14 @@ export default function Cart() {
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 
-  const [cartItems, setCartItems] = useState(getCartItems());
-  const [checkoutTotal, setCheckoutTotal] = useState(null);
+  const cartItems = getCartItems();
+  const total = getCartTotal();
   const [showQR, setShowQR] = useState(false);
   const [orderReference, setOrderReference] = useState(null);
   const [orderId, setOrderId] = useState(null);
   const [products, setProducts] = useState([]);
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  useEffect(() => {
-    setCartItems(getCartItems());
-  }, [getCartItems]);
-
-
-  useEffect(() => {
-    setCheckoutTotal(getCartTotal());
-  }, [getCartItems]);
 
   // Fetch current product data to validate stock
   useEffect(() => {
@@ -80,7 +71,7 @@ export default function Cart() {
   };
 
   const handleCheckout = async () => {
-    if (checkoutTotal === null || checkoutTotal <= 0) return;
+    if (total <= 0) return;
     setIsProcessing(true);
 
     try {
@@ -97,7 +88,7 @@ export default function Cart() {
             size: item.selectedSize || null,
             sizeType: item.sizeType || "none"
           })),
-          total: checkoutTotal,
+          total: total,
         }),
       });
 
@@ -303,7 +294,7 @@ export default function Cart() {
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between text-xl font-light border-t pt-4">
                       <span>Total</span>
-                      <span>₹{checkoutTotal}</span>
+                      <span>₹{total}</span>
                     </div>
                   </div>
 
@@ -376,14 +367,14 @@ export default function Cart() {
                   </p>
                   <div className="flex justify-center bg-white p-4 rounded-xl">
                     <QRCodeSVG
-                      value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${checkoutTotal}&cu=INR&tn=Order ${orderReference}`}
+                      value={`upi://pay?pa=7898793304@ptsbi&pn=Abhikalpa&am=${total}&cu=INR&tn=Order ${orderReference}`}
                       size={200}
                       className="w-full max-w-[200px] h-auto"
                     />
                   </div>
                   <div className="text-center mt-4">
                     <span className="text-gray-500 text-xs uppercase tracking-wider">Amount</span>
-                    <p className="text-3xl font-light text-gray-900 mt-1">₹{checkoutTotal}</p>
+                    <p className="text-3xl font-light text-gray-900 mt-1">₹{total}</p>
                   </div>
                 </div>
 
