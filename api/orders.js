@@ -19,6 +19,7 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  // POST - Create new order
   if (req.method === "POST") {
     const client = await connectToDatabase();
     const db = client.db("abhikalpa");
@@ -27,7 +28,7 @@ export default async function handler(req, res) {
     const order = {
       items: req.body.items,
       total: req.body.total,
-      transactionId: null,      // ✅ IMPORTANT
+      transactionId: null,
       customer: null,
       status: "Pending",
       createdAt: new Date(),
@@ -38,6 +39,7 @@ export default async function handler(req, res) {
     return res.status(201).json({ _id: result.insertedId });
   }
 
+  // GET - Fetch all orders (admin only)
   if (req.method === "GET") {
     const token = req.headers.authorization?.replace("Bearer ", "");
     const { data } = await supabase.auth.getUser(token);
@@ -56,6 +58,7 @@ export default async function handler(req, res) {
     return res.json(orders);
   }
 
+  // PUT - Update order status (admin only)
   if (req.method === "PUT") {
     const token = req.headers.authorization?.replace("Bearer ", "");
     const { data } = await supabase.auth.getUser(token);
@@ -76,5 +79,37 @@ export default async function handler(req, res) {
     return res.json({ success: true });
   }
 
-  res.status(405).end();
+  // DELETE - Delete order (admin only)
+  if (req.method === "DELETE") {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    const { data } = await supabase.auth.getUser(token);
+    if (data.user?.app_metadata?.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const { _id } = req.body;
+    
+    if (!_id) {
+      return res.status(400).json({ error: "Order ID is required" });
+    }
+
+    try {
+      const client = await connectToDatabase();
+      const result = await client
+        .db("abhikalpa")
+        .collection("orders")
+        .deleteOne({ _id: new ObjectId(_id) });
+
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      return res.json({ success: true, message: "Order deleted successfully" });
+    } catch (err) {
+      console.error("Delete error:", err);
+      return res.status(500).json({ error: "Failed to delete order" });
+    }
+  }
+
+  res.status(405).json({ error: "Method not allowed" });
 }
