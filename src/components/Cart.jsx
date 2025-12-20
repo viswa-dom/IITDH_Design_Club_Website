@@ -18,7 +18,7 @@ export default function Cart() {
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 
-  const cartItems = getCartItems();
+  const [cartItems, setCartItems] = useState(getCartItems());
   const [checkoutTotal, setCheckoutTotal] = useState(null);
   const [showQR, setShowQR] = useState(false);
   const [orderReference, setOrderReference] = useState(null);
@@ -28,10 +28,13 @@ export default function Cart() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    setCheckoutTotal(getCartTotal());
-  }, [cartItems]);
-  console.log("Rendered — showQR:", showQR);
+    setCartItems(getCartItems());
+  }, [getCartItems]);
 
+
+  useEffect(() => {
+    setCheckoutTotal(getCartTotal());
+  }, [getCartItems]);
 
   // Fetch current product data to validate stock
   useEffect(() => {
