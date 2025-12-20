@@ -3,6 +3,7 @@ import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Package, Copy, Check } fr
 import { useCart } from "./CartContext";
 import { QRCodeSVG } from "qrcode.react";
 import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function Cart() {
   const [showQR, setShowQR] = useState(false);
   const [orderReference, setOrderReference] = useState(null);
   const [orderId, setOrderId] = useState(null);
+  const [userEmail, setUserEmail] = useState("");
   const [products, setProducts] = useState([]);
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -75,7 +77,16 @@ export default function Cart() {
     setIsProcessing(true);
 
     try {
-      // Create order in database (NO stock deduction yet - only when confirmed)
+      // Get current user's email
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user?.email) {
+        alert("Please log in to complete your purchase");
+        setIsProcessing(false);
+        return;
+      }
+
+      // Create order in database with user email (NO stock deduction yet)
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,6 +100,7 @@ export default function Cart() {
             sizeType: item.sizeType || "none"
           })),
           total: total,
+          userEmail: user.email,  // ✅ Store user's email with the order
         }),
       });
 
@@ -98,9 +110,10 @@ export default function Cart() {
 
       const data = await res.json();
       
-      // Store order reference and show QR
+      // Store order reference and user email
       setOrderReference(data.transactionRef);
       setOrderId(data._id);
+      setUserEmail(user.email);
       setShowQR(true);
       
     } catch (err) {
@@ -138,6 +151,9 @@ export default function Cart() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Build Google Form URL with pre-filled data
+  const googleFormUrl = `https://docs.google.com/forms/d/e/1FAIpQLSc71mc6dGYWo-OBjdE2yV_Z7IfAjFMYRZZmPWUi7HMNweMeaQ/viewform?usp=pp_url&entry.840138153=${encodeURIComponent(orderReference || '')}&emailAddress=${encodeURIComponent(userEmail || '')}`;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -360,7 +376,7 @@ export default function Cart() {
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   <p className="text-xs font-medium text-gray-200">
-                    IMPORTANT: Save this reference number! You'll need it to confirm your payment.
+                    IMPORTANT: This reference will be auto-filled in the form!
                   </p>
                 </div>
               </div>
@@ -404,22 +420,21 @@ export default function Cart() {
                   </li>
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs font-semibold">3</span>
-                    <span className="pt-0.5">Click the button below to open the confirmation form</span>
+                    <span className="pt-0.5">Click the button below - your email and order reference will be pre-filled!</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs font-semibold">4</span>
-                    <span className="pt-0.5">Enter your details, <strong>Order Reference</strong>, and UPI Transaction ID</span>
+                    <span className="pt-0.5">Enter your name, phone, and UPI Transaction ID</span>
                   </li>
                 </ol>
               </div>
 
               {/* Form Link Button */}
               <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLSc71mc6dGYWo-OBjdE2yV_Z7IfAjFMYRZZmPWUi7HMNweMeaQ/viewform"
+                href={googleFormUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => {
-                  // Set session token for confirmation page access
                   sessionStorage.setItem('order_confirmed', 'true');
                 }}
                 className="block w-full py-4 bg-black text-white text-center rounded-lg hover:bg-gray-900 transition-all duration-200 font-medium mb-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"

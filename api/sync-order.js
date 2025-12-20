@@ -1,4 +1,4 @@
-// api/sync-order.js (note: singular "order" to match your Google Script)
+// api/sync-order.js - Email comes from order, not form
 import { MongoClient, ObjectId } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
@@ -14,7 +14,6 @@ async function connectToDatabase() {
 }
 
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -28,28 +27,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    let { transactionId, name, email, phone, orderRef } = req.body;
+    // Email is NO LONGER required from form - we get it from the order
+    let { transactionId, name, phone, orderRef } = req.body;
 
     // Validate required fields
-    if (!transactionId || !name || !email || !orderRef) {
+    if (!transactionId || !name || !orderRef) {
       return res.status(400).json({ 
         error: "Missing required fields",
-        required: ["transactionId", "name", "email", "orderRef"],
+        required: ["transactionId", "name", "orderRef"],
         received: { 
           transactionId: !!transactionId, 
           name: !!name, 
-          email: !!email, 
           phone: !!phone,
           orderRef: !!orderRef
         }
       });
     }
 
-    // Clean up inputs
     transactionId = transactionId.trim();
     orderRef = orderRef.trim();
     
-    console.log('Sync request received:', { orderRef, transactionId, name, email, phone });
+    console.log('Sync request received:', { orderRef, transactionId, name, phone });
 
     const client = await connectToDatabase();
     const db = client.db("abhikalpa");
@@ -63,13 +61,12 @@ export default async function handler(req, res) {
       console.log('Transaction ID already used:', transactionId);
       return res.status(409).json({
         error: "Transaction ID already used",
-        message: "This UPI transaction ID has already been linked to another order. Each transaction ID can only be used once.",
-        transactionId,
-        orderId: existingTxn._id.toString()
+        message: "This UPI transaction ID has already been linked to another order.",
+        transactionId
       });
     }
 
-    // Find order by reference number (the exact order customer created)
+    // Find order by reference number
     const matchedOrder = await orders.findOne({
       transactionRef: orderRef,
       customer: null,
@@ -80,10 +77,23 @@ export default async function handler(req, res) {
       console.log('Order not found with reference:', orderRef);
       return res.status(404).json({
         error: "Order not found",
-        message: "Could not find a pending order with this reference number. Please check your order reference and try again.",
+        message: "Could not find a pending order with this reference number.",
         orderRef
       });
     }
+
+    // ✅ GET EMAIL FROM THE EXISTING ORDER (stored during checkout)
+    const userEmail = matchedOrder.userEmail;
+    
+    if (!userEmail) {
+      console.log('Order missing userEmail:', matchedOrder._id);
+      return res.status(400).json({
+        error: "Order data incomplete",
+        message: "This order is missing user email information. Please contact support.",
+      });
+    }
+
+    console.log('Found order with email:', userEmail);
 
     // ✅ DEDUCT STOCK BEFORE CONFIRMING ORDER
     console.log('Deducting stock for order:', matchedOrder._id);
@@ -94,32 +104,21 @@ export default async function handler(req, res) {
         const sizeType = item.sizeType || "none";
         
         if (sizeType === "none") {
-          // Deduct from quantity for non-sized items
           const result = await products.updateOne(
             { 
               _id: new ObjectId(item.productId),
-              quantity: { $gte: item.quantity } // Ensure enough stock
+              quantity: { $gte: item.quantity }
             },
             { $inc: { quantity: -item.quantity } }
           );
 
-          if (result.matchedCount === 0) {
-            stockDeductionResults.push({ 
-              productId: item.productId,
-              name: item.name,
-              success: false, 
-              error: 'Insufficient stock' 
-            });
-          } else {
-            stockDeductionResults.push({ 
-              productId: item.productId,
-              name: item.name,
-              success: true,
-              deducted: item.quantity
-            });
-          }
+          stockDeductionResults.push({ 
+            productId: item.productId,
+            name: item.name,
+            success: result.matchedCount > 0,
+            error: result.matchedCount === 0 ? 'Insufficient stock' : null
+          });
         } else {
-          // Deduct from specific size stock
           if (!item.size) {
             stockDeductionResults.push({ 
               productId: item.productId,
@@ -133,28 +132,18 @@ export default async function handler(req, res) {
           const result = await products.updateOne(
             { 
               _id: new ObjectId(item.productId),
-              [`stock.${item.size}`]: { $gte: item.quantity } // Ensure enough stock
+              [`stock.${item.size}`]: { $gte: item.quantity }
             },
             { $inc: { [`stock.${item.size}`]: -item.quantity } }
           );
 
-          if (result.matchedCount === 0) {
-            stockDeductionResults.push({ 
-              productId: item.productId,
-              name: item.name,
-              size: item.size,
-              success: false, 
-              error: 'Insufficient stock for size' 
-            });
-          } else {
-            stockDeductionResults.push({ 
-              productId: item.productId,
-              name: item.name,
-              size: item.size,
-              success: true,
-              deducted: item.quantity
-            });
-          }
+          stockDeductionResults.push({ 
+            productId: item.productId,
+            name: item.name,
+            size: item.size,
+            success: result.matchedCount > 0,
+            error: result.matchedCount === 0 ? 'Insufficient stock' : null
+          });
         }
       } catch (itemError) {
         console.error(`Error processing item ${item.productId}:`, itemError);
@@ -171,9 +160,9 @@ export default async function handler(req, res) {
     const allStockDeducted = stockDeductionResults.every(r => r.success);
     
     if (!allStockDeducted) {
-      console.error('Stock deduction failed for some items:', stockDeductionResults);
+      console.error('Stock deduction failed:', stockDeductionResults);
       
-      // Rollback: restore stock for successfully deducted items
+      // Rollback successful deductions
       for (const result of stockDeductionResults) {
         if (result.success) {
           const item = matchedOrder.items.find(i => i.productId === result.productId);
@@ -196,43 +185,38 @@ export default async function handler(req, res) {
       
       return res.status(400).json({
         error: "Insufficient stock",
-        message: "Some items are out of stock or insufficient quantity available.",
+        message: "Some items are out of stock.",
         stockDeductionResults
       });
     }
 
-    // ✅ NOW UPDATE THE ORDER WITH CUSTOMER INFO AND CONFIRM STATUS
+    // ✅ UPDATE ORDER WITH CUSTOMER INFO (using email from order, not form)
     const result = await orders.findOneAndUpdate(
       { _id: matchedOrder._id },
       {
         $set: {
           transactionId,
-          customer: { name, email, phone: phone || "N/A" },
-          status: "Confirmed", // ✅ Automatically confirmed when form is submitted
+          customer: { 
+            name, 
+            email: userEmail,  // ✅ Use email from order
+            phone: phone || "N/A" 
+          },
+          status: "Confirmed",
           updatedAt: new Date(),
         },
       },
       { returnDocument: "after" }
     );
 
-    console.log('Order confirmed successfully:', result.value._id, 'with transaction ID:', transactionId);
-    console.log('Stock deducted:', stockDeductionResults);
+    console.log('Order confirmed:', result.value._id, 'for user:', userEmail);
 
     return res.status(200).json({ 
       success: true,
-      orderId: result.value._id.toString(),
-      orderRef: result.value.transactionRef,
-      transactionId: result.value.transactionId,
-      message: "Payment confirmed! Your order has been updated and stock has been reserved.",
+      message: "Payment confirmed! Your order has been updated.",
       order: {
         id: result.value._id.toString(),
-        items: result.value.items,
-        total: result.value.total,
         status: result.value.status,
-        transactionRef: result.value.transactionRef,
-        transactionId: result.value.transactionId
-      },
-      stockDeducted: stockDeductionResults
+      }
     });
 
   } catch (err) {
