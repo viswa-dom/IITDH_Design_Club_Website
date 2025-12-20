@@ -41,15 +41,25 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Email parameter is required' });
     }
 
+    console.log('Fetching orders for email:', email);
+
     const client = await connectToDatabase();
     const db = client.db("abhikalpa");
     const orders = db.collection("orders");
 
     // Find all orders for this user's email
+    // Check both userEmail (stored at checkout) and customer.email (after form submission)
     const userOrders = await orders
-      .find({ email: email })
+      .find({ 
+        $or: [
+          { userEmail: email },        // Orders created by this user
+          { "customer.email": email }   // Orders confirmed with this email
+        ]
+      })
       .sort({ createdAt: -1 })
       .toArray();
+
+    console.log(`Found ${userOrders.length} orders for ${email}`);
 
     return res.status(200).json(userOrders);
   } catch (e) {
