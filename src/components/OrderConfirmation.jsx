@@ -1,30 +1,43 @@
 import { useNavigate } from "react-router-dom";
 import { Check, ShoppingBag, Home } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "./CartContext";
 
 export default function OrderConfirmation() {
   const navigate = useNavigate();
   const [showContent, setShowContent] = useState(false);
+  const [isValidSession, setIsValidSession] = useState(false);
   const { clearCart } = useCart();
-  const hasCleared = useRef(false);
 
   useEffect(() => {
-    // Only run once when component mounts
-    if (!hasCleared.current) {
-      // Scroll to top only once
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      // Clear the cart since order is confirmed
-      clearCart();
-      
-      // Trigger animation after a brief delay
-      setTimeout(() => setShowContent(true), 100);
-      
-      // Mark as cleared so this doesn't run again
-      hasCleared.current = true;
+    // Check if user came from payment form (Google Form redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasFormToken = urlParams.has('submitted') || sessionStorage.getItem('order_confirmed');
+    
+    if (!hasFormToken) {
+      // No valid session - redirect to home
+      navigate('/', { replace: true });
+      return;
     }
-  }, []); // Empty dependency array - only run on mount
+
+    // Valid session - mark it and remove token
+    setIsValidSession(true);
+    sessionStorage.removeItem('order_confirmed');
+    
+    // Scroll to top when component mounts
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Clear the cart since order is confirmed
+    clearCart();
+    
+    // Trigger animation after a brief delay
+    setTimeout(() => setShowContent(true), 100);
+  }, [navigate, clearCart]);
+
+  // Don't render anything if session is invalid
+  if (!isValidSession) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-20 px-6">
