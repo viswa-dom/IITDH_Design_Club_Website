@@ -21,7 +21,6 @@ export default function Cart() {
   const cartItems = getCartItems();
   const total = getCartTotal();
   const [showQR, setShowQR] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [orderReference, setOrderReference] = useState(null);
   const [orderId, setOrderId] = useState(null);
   const [products, setProducts] = useState([]);
@@ -76,7 +75,7 @@ export default function Cart() {
     setIsProcessing(true);
 
     try {
-      // Step 1: Create order in database
+      // Create order in database (NO stock deduction yet - only when confirmed)
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -86,7 +85,8 @@ export default function Cart() {
             name: item.name,
             quantity: item.quantity,
             price: item.price,
-            size: item.selectedSize || null
+            size: item.selectedSize || null,
+            sizeType: item.sizeType || "none"
           })),
           total: total,
         }),
@@ -98,25 +98,7 @@ export default function Cart() {
 
       const data = await res.json();
       
-      // Step 2: Deduct stock
-      const stockRes = await fetch("/api/deduct-stock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: cartItems.map(item => ({
-            productId: item._id,
-            quantity: item.quantity,
-            size: item.selectedSize,
-            sizeType: item.sizeType || "none",
-          }))
-        })
-      });
-
-      if (!stockRes.ok) {
-        throw new Error("Failed to deduct stock");
-      }
-
-      // Step 3: Store order reference and show QR
+      // Store order reference and show QR
       setOrderReference(data.transactionRef);
       setOrderId(data._id);
       setShowQR(true);
@@ -131,12 +113,8 @@ export default function Cart() {
 
   const handleClosePayment = () => {
     setShowQR(false);
-    setShowSuccess(true);
-  };
-
-  const handleFinalClose = () => {
-    setShowSuccess(false);
     setOrderReference(null);
+    // Clear cart after closing payment modal
     clearCart();
     navigate('/merch');
   };
@@ -408,40 +386,7 @@ export default function Cart() {
               onClick={handleClosePayment}
               className="w-full py-3 border border-gray-300 text-gray-700 rounded-sm hover:bg-gray-100 transition-colors font-light"
             >
-              I've Completed Payment
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Success Modal */}
-      {showSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center px-4 z-50">
-          <div className="bg-white text-black rounded-sm p-8 shadow-2xl w-full max-w-md text-center">
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Check className="w-10 h-10 text-white" />
-            </div>
-            
-            <h2 className="text-3xl font-light mb-4">Order Placed Successfully!</h2>
-            
-            <p className="text-gray-600 mb-6 font-light">
-              Your order has been created and stock has been reserved. We'll confirm your order once we receive your payment details via the form.
-            </p>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-sm p-4 mb-6 text-left">
-              <p className="text-sm text-blue-900 font-medium mb-2">📌 Important:</p>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Your order reference: <code className="font-mono bg-white px-2 py-1 rounded text-xs">{orderReference}</code></li>
-                <li>• Please submit the payment confirmation form</li>
-                <li>• You'll receive a confirmation email once verified</li>
-              </ul>
-            </div>
-
-            <button
-              onClick={handleFinalClose}
-              className="w-full py-3 bg-black text-white rounded-sm hover:bg-gray-900 transition-colors font-light"
-            >
-              Continue Shopping
+              Close
             </button>
           </div>
         </div>

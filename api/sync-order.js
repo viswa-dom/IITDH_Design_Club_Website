@@ -1,4 +1,5 @@
-import { MongoClient } from "mongodb";
+// api/sync-order.js (note: singular "order" to match your Google Script)
+import { MongoClient, ObjectId } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
 let cachedClient = null;
@@ -53,6 +54,7 @@ export default async function handler(req, res) {
     const client = await connectToDatabase();
     const db = client.db("abhikalpa");
     const orders = db.collection("orders");
+    const products = db.collection("products");
 
     // Check if this transaction ID was already used
     const existingTxn = await orders.findOne({ transactionId });
@@ -83,14 +85,130 @@ export default async function handler(req, res) {
       });
     }
 
-    // Update the order with transaction ID and customer info
+    // ✅ DEDUCT STOCK BEFORE CONFIRMING ORDER
+    console.log('Deducting stock for order:', matchedOrder._id);
+    
+    const stockDeductionResults = [];
+    for (const item of matchedOrder.items) {
+      try {
+        const sizeType = item.sizeType || "none";
+        
+        if (sizeType === "none") {
+          // Deduct from quantity for non-sized items
+          const result = await products.updateOne(
+            { 
+              _id: new ObjectId(item.productId),
+              quantity: { $gte: item.quantity } // Ensure enough stock
+            },
+            { $inc: { quantity: -item.quantity } }
+          );
+
+          if (result.matchedCount === 0) {
+            stockDeductionResults.push({ 
+              productId: item.productId,
+              name: item.name,
+              success: false, 
+              error: 'Insufficient stock' 
+            });
+          } else {
+            stockDeductionResults.push({ 
+              productId: item.productId,
+              name: item.name,
+              success: true,
+              deducted: item.quantity
+            });
+          }
+        } else {
+          // Deduct from specific size stock
+          if (!item.size) {
+            stockDeductionResults.push({ 
+              productId: item.productId,
+              name: item.name,
+              success: false, 
+              error: 'Size not provided' 
+            });
+            continue;
+          }
+
+          const result = await products.updateOne(
+            { 
+              _id: new ObjectId(item.productId),
+              [`stock.${item.size}`]: { $gte: item.quantity } // Ensure enough stock
+            },
+            { $inc: { [`stock.${item.size}`]: -item.quantity } }
+          );
+
+          if (result.matchedCount === 0) {
+            stockDeductionResults.push({ 
+              productId: item.productId,
+              name: item.name,
+              size: item.size,
+              success: false, 
+              error: 'Insufficient stock for size' 
+            });
+          } else {
+            stockDeductionResults.push({ 
+              productId: item.productId,
+              name: item.name,
+              size: item.size,
+              success: true,
+              deducted: item.quantity
+            });
+          }
+        }
+      } catch (itemError) {
+        console.error(`Error processing item ${item.productId}:`, itemError);
+        stockDeductionResults.push({ 
+          productId: item.productId,
+          name: item.name,
+          success: false, 
+          error: itemError.message 
+        });
+      }
+    }
+
+    // Check if all items were successfully deducted
+    const allStockDeducted = stockDeductionResults.every(r => r.success);
+    
+    if (!allStockDeducted) {
+      console.error('Stock deduction failed for some items:', stockDeductionResults);
+      
+      // Rollback: restore stock for successfully deducted items
+      for (const result of stockDeductionResults) {
+        if (result.success) {
+          const item = matchedOrder.items.find(i => i.productId === result.productId);
+          if (item) {
+            const sizeType = item.sizeType || "none";
+            if (sizeType === "none") {
+              await products.updateOne(
+                { _id: new ObjectId(item.productId) },
+                { $inc: { quantity: item.quantity } }
+              );
+            } else if (item.size) {
+              await products.updateOne(
+                { _id: new ObjectId(item.productId) },
+                { $inc: { [`stock.${item.size}`]: item.quantity } }
+              );
+            }
+          }
+        }
+      }
+      
+      return res.status(400).json({
+        error: "Insufficient stock",
+        message: "Some items are out of stock or insufficient quantity available.",
+        stockDeductionResults
+      });
+    }
+
+    // ✅ NOW UPDATE THE ORDER WITH CUSTOMER INFO AND CONFIRM STATUS
     const result = await orders.findOneAndUpdate(
       { _id: matchedOrder._id },
       {
         $set: {
           transactionId,
           customer: { name, email, phone: phone || "N/A" },
-          status: "Confirmed",
+          status: "Confirmed", // ✅ Automatically confirmed when form is submitted
           updatedAt: new Date(),
         },
       },
@@ -98,13 +216,14 @@ export default async function handler(req, res) {
     );
 
     console.log('Order confirmed successfully:', result.value._id, 'with transaction ID:', transactionId);
+    console.log('Stock deducted:', stockDeductionResults);
 
     return res.status(200).json({ 
       success: true,
       orderId: result.value._id.toString(),
       orderRef: result.value.transactionRef,
       transactionId: result.value.transactionId,
-      message: "Payment confirmed! Your order has been updated.",
+      message: "Payment confirmed! Your order has been updated and stock has been reserved.",
       order: {
         id: result.value._id.toString(),
         items: result.value.items,
@@ -112,7 +231,8 @@ export default async function handler(req, res) {
         status: result.value.status,
         transactionRef: result.value.transactionRef,
         transactionId: result.value.transactionId
-      }
+      },
+      stockDeducted: stockDeductionResults
     });
 
   } catch (err) {

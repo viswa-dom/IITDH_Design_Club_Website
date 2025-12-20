@@ -8,6 +8,7 @@ export default function AdminOrders() {
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [newStatus, setNewStatus] = useState("Pending");
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const fetchOrders = async () => {
     try {
@@ -48,6 +49,7 @@ export default function AdminOrders() {
   }, []);
 
   const updateOrderStatus = async (orderId, status) => {
+    setUpdatingStatus(true);
     try {
       const {
         data: { session },
@@ -58,6 +60,7 @@ export default function AdminOrders() {
         return;
       }
 
+      // Update order status
       const res = await fetch("/api/orders", {
         method: "PUT",
         headers: {
@@ -78,7 +81,9 @@ export default function AdminOrders() {
       fetchOrders();
     } catch (err) {
       console.error("Update status error:", err);
-      alert("Failed to update order status");
+      alert("Failed to update order status: " + err.message);
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -118,7 +123,7 @@ export default function AdminOrders() {
     // Prepare data for export
     const exportData = orders.map((order) => ({
       "Order ID": order._id,
-      "Order Reference": order.transactionRef || "N/A",  // ✅ ADDED
+      "Order Reference": order.transactionRef || "N/A",
       "Transaction ID": order.transactionId || "N/A",
       "Customer Name": order.customer?.name || "Awaiting confirmation",
       "Email": order.customer?.email || "",
@@ -203,7 +208,12 @@ export default function AdminOrders() {
     <div className="min-h-screen bg-black text-white pt-32 pb-24 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-10">
-          <h1 className="text-4xl font-light">Orders Management</h1>
+          <div>
+            <h1 className="text-4xl font-light mb-2">Orders Management</h1>
+            <p className="text-gray-400 text-sm">
+              💡 Orders are automatically confirmed when customers submit the payment form
+            </p>
+          </div>
           
           {orders.length > 0 && (
             <button
@@ -257,7 +267,6 @@ export default function AdminOrders() {
                       <div className="text-xs text-gray-500">Order ID</div>
                       <div className="break-all text-xs">{order._id}</div>
 
-                      {/* ✅ ADDED: Order Reference */}
                       {order.transactionRef && (
                         <>
                           <div className="mt-2 text-xs text-gray-500">
@@ -274,7 +283,7 @@ export default function AdminOrders() {
                           <div className="mt-2 text-xs text-gray-500">
                             UPI Transaction ID
                           </div>
-                          <div className="break-all text-green-700">
+                          <div className="break-all text-green-700 text-xs">
                             {order.transactionId}
                           </div>
                         </>
@@ -318,6 +327,11 @@ export default function AdminOrders() {
                       >
                         {order.status}
                       </span>
+                      {order.status === "Confirmed" && (
+                        <div className="text-xs text-green-600 mt-1">
+                          ✓ Stock deducted
+                        </div>
+                      )}
                     </td>
 
                     {/* DATE */}
@@ -361,10 +375,18 @@ export default function AdminOrders() {
           <div className="bg-white text-black p-8 w-full max-w-md">
             <h2 className="text-2xl mb-6">Update Order Status</h2>
 
+            {/* Info note */}
+            <div className="bg-blue-50 border border-blue-300 rounded p-4 mb-6">
+              <p className="text-sm text-blue-800">
+                ℹ️ <strong>Note:</strong> Orders are automatically confirmed (and stock deducted) when customers submit the payment form. Changing status here won't affect inventory.
+              </p>
+            </div>
+
             <select
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
               className="w-full p-2 border mb-6"
+              disabled={updatingStatus}
             >
               <option value="Pending">Pending</option>
               <option value="Confirmed">Confirmed</option>
@@ -377,13 +399,15 @@ export default function AdminOrders() {
             <div className="flex gap-3">
               <button
                 onClick={() => updateOrderStatus(editingOrder, newStatus)}
-                className="flex-1 bg-black text-white py-2"
+                disabled={updatingStatus}
+                className="flex-1 bg-black text-white py-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Update
+                {updatingStatus ? "Updating..." : "Update"}
               </button>
               <button
                 onClick={() => setEditingOrder(null)}
-                className="flex-1 border border-black py-2"
+                disabled={updatingStatus}
+                className="flex-1 border border-black py-2 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -407,7 +431,6 @@ export default function AdminOrders() {
                   <span className="font-medium">Order ID:</span>{" "}
                   <span className="text-xs">{deletingOrder._id}</span>
                 </div>
-                {/* ✅ ADDED: Show Order Reference in delete modal */}
                 {deletingOrder.transactionRef && (
                   <div className="mb-2">
                     <span className="font-medium">Order Reference:</span>{" "}
@@ -424,6 +447,12 @@ export default function AdminOrders() {
                   <span className="font-medium">Total:</span> ₹{deletingOrder.total}
                 </div>
               </div>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-300 rounded p-4 mb-6">
+              <p className="text-xs text-yellow-800">
+                ⚠️ <strong>Warning:</strong> If this order was confirmed, deleting it will NOT restore the inventory stock. You'll need to manually adjust stock if needed.
+              </p>
             </div>
 
             <div className="flex gap-3">
