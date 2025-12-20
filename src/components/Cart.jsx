@@ -111,12 +111,26 @@ export default function Cart() {
     }
   };
 
-  const handleClosePayment = () => {
+  const handleClosePayment = async () => {
+    // Delete the placeholder order before closing
+    if (orderId) {
+      try {
+        await fetch("/api/orders", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ _id: orderId }),
+        });
+      } catch (err) {
+        console.error("Failed to delete placeholder order:", err);
+      }
+    }
+
+    // Reset state but DON'T clear cart
     setShowQR(false);
     setOrderReference(null);
-    // Clear cart after closing payment modal
-    clearCart();
-    navigate('/merch');
+    setOrderId(null);
+    
+    // Cart remains intact so user can try again
   };
 
   const copyToClipboard = (text) => {
@@ -323,7 +337,7 @@ export default function Cart() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <p className="text-sm font-semibold text-white">Your Order Reference</p>
+                  <p className="text-sm font-semibold text-gray-900">Your Order Reference</p>
                 </div>
                 
                 <div className="flex items-center gap-2 bg-white p-3 rounded-md border-2 border-gray-300 shadow-inner">

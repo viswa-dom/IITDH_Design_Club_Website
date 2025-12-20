@@ -88,15 +88,9 @@ export default async function handler(req, res) {
     return res.json({ success: true });
   }
 
-  // DELETE - Delete order (admin only)
+  // DELETE - Delete order
   if (req.method === "DELETE") {
-    const token = req.headers.authorization?.replace("Bearer ", "");
-    const { data } = await supabase.auth.getUser(token);
-    if (data.user?.app_metadata?.role !== "admin") {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    const { _id } = req.body;
+    const { _id, adminDelete } = req.body;
     
     if (!_id) {
       return res.status(400).json({ error: "Order ID is required" });
@@ -104,10 +98,33 @@ export default async function handler(req, res) {
 
     try {
       const client = await connectToDatabase();
-      const result = await client
-        .db("abhikalpa")
-        .collection("orders")
-        .deleteOne({ _id: new ObjectId(_id) });
+      const ordersCollection = client.db("abhikalpa").collection("orders");
+
+      // If adminDelete flag is true, require authentication
+      if (adminDelete) {
+        const token = req.headers.authorization?.replace("Bearer ", "");
+        const { data } = await supabase.auth.getUser(token);
+        if (data.user?.app_metadata?.role !== "admin") {
+          return res.status(403).json({ error: "Forbidden" });
+        }
+      } else {
+        // For user-initiated deletes (closing checkout modal):
+        // Only allow deletion of Pending orders with no customer info
+        const order = await ordersCollection.findOne({ _id: new ObjectId(_id) });
+        
+        if (!order) {
+          return res.status(404).json({ error: "Order not found" });
+        }
+
+        // Security check: only allow deleting placeholder orders
+        if (order.status !== "Pending" || order.customer !== null) {
+          return res.status(403).json({ 
+            error: "Cannot delete confirmed orders" 
+          });
+        }
+      }
+
+      const result = await ordersCollection.deleteOne({ _id: new ObjectId(_id) });
 
       if (result.deletedCount === 0) {
         return res.status(404).json({ error: "Order not found" });
