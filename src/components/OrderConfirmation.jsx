@@ -11,10 +11,8 @@ export default function OrderConfirmation() {
   const { clearCart } = useCart();
 
   useEffect(() => {
-    // Force scroll to top immediately - before any other logic
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    // Scroll to top only ONCE on initial mount - then allow normal scrolling
+    window.scrollTo({ top: 0, behavior: 'instant' });
 
     // Check if user came from payment form (Google Form redirect)
     const urlParams = new URLSearchParams(window.location.search);
@@ -35,21 +33,7 @@ export default function OrderConfirmation() {
     
     // Trigger animation after a brief delay
     setTimeout(() => setShowContent(true), 100);
-
-    // Additional scroll enforcement after a small delay
-    const scrollTimer = setTimeout(() => {
-      window.scrollTo(0, 0);
-    }, 50);
-
-    return () => clearTimeout(scrollTimer);
   }, [navigate, clearCart]);
-
-  // Force scroll on render as well
-  useEffect(() => {
-    if (isValidSession) {
-      window.scrollTo(0, 0);
-    }
-  }, [isValidSession]);
 
   // Don't render anything if session is invalid
   if (!isValidSession) {
