@@ -113,7 +113,7 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
           <div className="flex items-center justify-between">
             <button
               onClick={() => scrollToSection('hero')}
-              className="text-xl md:text-2xl font-light tracking-tight hover:opacity-70 transition-opacity duration-300 relative z-[60]"
+              className="text-xl md:text-2xl font-light tracking-tight hover:opacity-70 transition-opacity duration-300 z-[70]"
             >
               ABHIKALPA
             </button>
@@ -189,7 +189,7 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 hover:bg-white hover:bg-opacity-10 transition-all duration-300 relative z-[60]"
+              className="md:hidden p-2 hover:bg-white hover:bg-opacity-10 transition-all duration-300 z-[70]"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -199,15 +199,15 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
 
       {/* Full Screen Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-[60] md:hidden">
           {/* Dark Overlay Background */}
           <div 
-            className="absolute inset-0 bg-black bg-opacity-95 backdrop-blur-md"
+            className="absolute inset-0 bg-black bg-opacity-95 backdrop-blur-md z-[60]"
             onClick={() => setIsMobileMenuOpen(false)}
           />
           
           {/* Menu Content */}
-          <div className="relative h-full overflow-y-auto">
+          <div className="relative h-full overflow-y-auto z-[60]">
             <div className="min-h-full flex flex-col justify-center px-6 py-24">
               {/* Main Navigation Links */}
               <div className="space-y-6 mb-12">
