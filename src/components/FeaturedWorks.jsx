@@ -52,7 +52,7 @@ export const FeaturedWorks = () => {
       className="min-h-screen flex items-center justify-center bg-white text-black px-6 py-20"
     >
       <Helmet>
-        <title>Featured Works - Abhikalpa</title>
+        <title>Abhikalpa Landing Page - Abhikalpa</title>
       </Helmet>
       <div className="max-w-7xl mx-auto w-full">
         <h2

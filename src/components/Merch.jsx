@@ -118,7 +118,7 @@ export default function Merch() {
   return (
     <div className="min-h-screen bg-black text-white">
       <Helmet>
-        <title>Merch Collections - Abhikalpa</title>
+        <title>Merch Factory - Abhikalpa</title>
       </Helmet>
       {/* HERO */}
       <section className="pt-32 pb-16 px-6">
