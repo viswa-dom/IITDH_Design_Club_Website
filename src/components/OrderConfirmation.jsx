@@ -193,6 +193,8 @@ export default function OrderConfirmation() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
 
           {/* Important Notice */}
           <div className="px-8 py-6 sm:px-12 bg-gray-100 border-t border-gray-200">
