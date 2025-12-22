@@ -204,11 +204,11 @@ export const Contact = () => {
               <h3 className="text-2xl font-light mb-6">Connect With Us</h3>
               <div className="space-y-4">
                 <a
-                  href="mailto:viswavijeth35@gmail.com"
+                  href="mailto:abhikalpa.dc@iitdh.ac.in"
                   className="flex items-center gap-4 text-gray-400 hover:text-white transition-colors duration-300 group"
                 >
                   <Mail className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
-                  <span className="font-light">viswavijeth35@gmail.com</span>
+                  <span className="font-light">abhikalpa.dc@iitdh.ac.in</span>
                 </a>
 
                 <a
