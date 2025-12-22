@@ -19,81 +19,73 @@ export const Interactive = () => {
     return () => observer.disconnect();
   }, []);
 
-const generateAIPrompt = async () => {
-  if (isGenerating) return;
-  setIsGenerating(true);
+  const generateAIPrompt = async () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
 
-  try {
-    const seed = Math.floor(Math.random() * 1_000_000);
-    const styles = [
-      "use a physical constraint",
-      "use a philosophical paradox",
-      "use a sensory limitation",
-      "use a mathematical rule",
-      "use an emotional contradiction",
-      "use a temporal constraint",
-      "use a spatial impossibility"
-    ];
+    try {
+      const seed = Math.floor(Math.random() * 1_000_000);
+      const styles = [
+        "use a physical constraint",
+        "use a philosophical paradox",
+        "use a sensory limitation",
+        "use a mathematical rule",
+        "use an emotional contradiction",
+        "use a temporal constraint",
+        "use a spatial impossibility"
+      ];
 
-    const style = styles[Math.floor(Math.random() * styles.length)];
+      const style = styles[Math.floor(Math.random() * styles.length)];
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 50,
-        temperature: 1.35,
-        top_p: 0.9,
-        messages: [
-          {
-            role: "user",
-            content: `
-Seed: ${seed}
-Directive: ${style}
+      // Call backend API instead of Anthropic directly
+      const res = await fetch("/api/generate-prompt", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          seed,
+          style
+        }),
+      });
 
-Generate ONE design challenge.
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
 
-Rules:
-- Under 12 words
-- No logos, posters, brands, typography
-- Avoid symmetry, minimalism, balance clichés
-- Must feel unlike typical design prompts
-- Output ONLY the prompt text
-`
-          }
-        ],
-      }),
-    });
+      const data = await res.json();
+      const newPrompt = data?.prompt;
 
-    const data = await res.json();
-    const newPrompt = data?.content?.[0]?.text?.trim();
+      if (!newPrompt) {
+        throw new Error("Empty response");
+      }
 
-    if (!newPrompt) throw new Error("Empty response");
+      setCurrentPrompt(newPrompt);
+      setPrompts(p => [...p, newPrompt]);
 
-    setCurrentPrompt(newPrompt);
-    setPrompts(p => [...p, newPrompt]);
+      // Optional: Log if using fallback
+      if (data.isFallback) {
+        console.log('Using fallback prompt');
+      }
 
-  } catch {
-    const fallback = [
-      "Design certainty using only ambiguity",
-      "Create order without repetition",
-      "Communicate motion in a static medium",
-      "Design warmth without color",
-      "Express scale using identical elements",
-    ][Math.floor(Math.random() * 5)];
+    } catch (error) {
+      console.error('Error generating prompt:', error);
+      
+      // Client-side fallback if API completely fails
+      const fallback = [
+        "Design certainty using only ambiguity",
+        "Create order without repetition",
+        "Communicate motion in a static medium",
+        "Design warmth without color",
+        "Express scale using identical elements",
+      ][Math.floor(Math.random() * 5)];
 
-    setCurrentPrompt(fallback);
-    setPrompts(p => [...p, fallback]);
-  }
+      setCurrentPrompt(fallback);
+      setPrompts(p => [...p, fallback]);
+    }
 
-  setIsGenerating(false);
-};
-
+    setIsGenerating(false);
+  };
 
   return (
     <section
@@ -133,7 +125,7 @@ Rules:
                   isGenerating ? "opacity-0 scale-95" : "opacity-100 scale-100"
                 }`}
               >
-                “{currentPrompt}”
+                "{currentPrompt}"
               </p>
             ) : (
               <p className="text-xl md:text-2xl text-gray-400 font-light">
