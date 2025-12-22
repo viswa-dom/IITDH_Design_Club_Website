@@ -1,30 +1,48 @@
+import { useEffect } from "react";
+
 export default function ShippingPolicy() {
+  useEffect(() => {
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    }, []);
+    
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Shipping Policy</h1>
+    <div className="min-h-screen bg-black pt-28 pb-20 text-white">
+      <div className="max-w-4xl mx-auto space-y-6 px-6">
+        <h1 className="text-4xl font-semibold">Shipping Policy</h1>
 
-      <p>
-        Abhikalpa deals primarily in digital artwork. Therefore, no physical
-        shipping is required.
-      </p>
+        <p className="text-gray-300 leading-relaxed">
+          Abhikalpa deals primarily in digital artwork, therefore physical
+          shipping is not required.
+        </p>
 
-      <h2>Digital Delivery</h2>
-      <p>
-        Digital artworks are delivered via email or user dashboard access
-        immediately or within the stated project timeline.
-      </p>
+        <h2 className="text-2xl font-medium mt-10 text-white">
+          Digital Delivery
+        </h2>
 
-      <h2>Physical Orders (If Applicable)</h2>
-      <p>
-        If a physical print or merchandise is purchased in the future, shipping
-        timelines will be updated here.
-      </p>
+        <p className="text-gray-300">
+          Digital artworks are delivered instantly via email or user dashboard.
+        </p>
 
-      <h2>Contact</h2>
-      <p>
-        For any delivery-related questions, contact:
-        <strong> your-email@example.com</strong>
-      </p>
+        <h2 className="text-2xl font-medium mt-10 text-white">
+          Physical Orders (If Applicable)
+        </h2>
+
+        <p className="text-gray-300">
+          If physical merchandise is purchased, shipping timelines will apply
+          and be updated here.
+        </p>
+
+        <h2 className="text-2xl font-medium mt-10 text-white">
+          Contact
+        </h2>
+
+        <p className="text-gray-300">
+          For delivery questions:{" "}
+          <strong className="text-white">
+            your-email@example.com
+          </strong>
+        </p>
+      </div>
     </div>
   );
 }

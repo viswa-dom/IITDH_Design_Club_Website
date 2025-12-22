@@ -1,38 +1,49 @@
+import { useEffect } from "react";
+
 export default function TermsConditions() {
+  useEffect(() => {
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    }, []);
+    
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Terms & Conditions</h1>
+    <div className="min-h-screen bg-black pt-28 pb-20 text-white">
+      <div className="max-w-4xl mx-auto space-y-6 px-6">
 
-      <p>
-        By accessing this website, you agree to the following terms and
-        conditions.
-      </p>
+        <h1 className="text-4xl font-semibold">Terms & Conditions</h1>
 
-      <h2>Use of Website</h2>
-      <p>
-        You may browse, purchase artwork, and interact with the digital content
-        provided. Any misuse, hacking attempts, or unauthorized reproduction of
-        artwork is prohibited.
-      </p>
+        <p className="text-gray-300 leading-relaxed">
+          By accessing this website, you agree to the following terms.
+        </p>
 
-      <h2>Payments</h2>
-      <p>
-        All payments are processed securely through Razorpay. By making a
-        purchase, you agree to Razorpay’s terms of service as well.
-      </p>
+        <h2 className="text-2xl font-medium mt-10">Use of Website</h2>
 
-      <h2>Intellectual Property</h2>
-      <p>
-        All artworks, images, and text on this platform belong to Abhikalpa or
-        their respective creators. Reproduction or resale without permission is
-        strictly prohibited.
-      </p>
+        <p className="text-gray-300">
+          Unauthorized reproduction or misuse of artwork is prohibited.
+        </p>
 
-      <h2>Changes</h2>
-      <p>
-        We may update these terms at any time. Continued use of the website
-        indicates acceptance of the updated terms.
-      </p>
+        <h2 className="text-2xl font-medium mt-10">Payments</h2>
+
+        <p className="text-gray-300">
+          All transactions are handled securely by Razorpay.
+        </p>
+
+        <h2 className="text-2xl font-medium mt-10">
+          Intellectual Property
+        </h2>
+
+        <p className="text-gray-300">
+          All artworks belong to Abhikalpa or their creators.
+        </p>
+
+        <h2 className="text-2xl font-medium mt-10">
+          Changes
+        </h2>
+
+        <p className="text-gray-300">
+          These terms may be updated anytime.
+        </p>
+
+      </div>
     </div>
   );
 }
