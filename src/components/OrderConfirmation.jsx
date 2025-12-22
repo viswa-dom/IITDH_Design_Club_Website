@@ -194,19 +194,6 @@ export default function OrderConfirmation() {
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                  4
-                </div>
-                <div className="flex-1 pt-1">
-                  <p className="text-gray-700">
-                    You'll receive tracking details via email
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Important Notice */}
           <div className="px-8 py-6 sm:px-12 bg-gray-100 border-t border-gray-200">
             <div className="flex gap-3">
