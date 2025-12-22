@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Check, ShoppingBag, Home } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useCart } from "./CartContext";
 import { Helmet } from 'react-helmet-async';
 
@@ -9,11 +9,9 @@ export default function OrderConfirmation() {
   const [showContent, setShowContent] = useState(false);
   const [isValidSession, setIsValidSession] = useState(false);
   const { clearCart } = useCart();
+  const allowScrollRef = useRef(false);
 
   useEffect(() => {
-    // Scroll to top only ONCE on initial mount - then allow normal scrolling
-    window.scrollTo({ top: 0, behavior: 'instant' });
-
     // Check if user came from payment form (Google Form redirect)
     const urlParams = new URLSearchParams(window.location.search);
     const hasFormToken = urlParams.has('submitted') || sessionStorage.getItem('order_confirmed');
@@ -31,9 +29,55 @@ export default function OrderConfirmation() {
     // Clear the cart since order is confirmed
     clearCart();
     
+    // Allow scrolling after a short delay (after any initial scroll-to-top from other components)
+    setTimeout(() => {
+      allowScrollRef.current = true;
+    }, 500);
+    
     // Trigger animation after a brief delay
     setTimeout(() => setShowContent(true), 100);
   }, [navigate, clearCart]);
+
+  // Prevent any external scroll-to-top hijacking
+  useEffect(() => {
+    if (!isValidSession) return;
+
+    let lastScrollY = 0;
+    let isUserScrolling = false;
+
+    const handleScroll = () => {
+      if (!allowScrollRef.current) return;
+      
+      const currentScrollY = window.scrollY;
+      
+      // Detect if user is actively scrolling (not being forced)
+      if (Math.abs(currentScrollY - lastScrollY) > 5) {
+        isUserScrolling = true;
+      }
+      
+      lastScrollY = currentScrollY;
+    };
+
+    const preventScrollHijacking = (e) => {
+      // If scroll is being forced to top after user started scrolling, prevent it
+      if (allowScrollRef.current && isUserScrolling && window.scrollY === 0) {
+        // Restore last known scroll position
+        if (lastScrollY > 0) {
+          window.scrollTo(0, lastScrollY);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Check for forced scrolls every 100ms
+    const intervalId = setInterval(preventScrollHijacking, 100);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearInterval(intervalId);
+    };
+  }, [isValidSession]);
 
   // Don't render anything if session is invalid
   if (!isValidSession) {
@@ -41,7 +85,7 @@ export default function OrderConfirmation() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-32 pb-20 px-6">
+    <div className="min-h-screen bg-black text-white pt-32 pb-20 px-6" style={{ overflowY: 'auto' }}>
       <Helmet>
         <title>Order Confirmation - Abhikalpa</title>
       </Helmet>
@@ -224,6 +268,12 @@ export default function OrderConfirmation() {
           to {
             stroke-dashoffset: 0;
           }
+        }
+        
+        /* Force enable scrolling */
+        html, body {
+          overflow-y: auto !important;
+          height: auto !important;
         }
       `}</style>
     </div>
