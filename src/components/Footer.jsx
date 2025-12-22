@@ -15,26 +15,6 @@ export const Footer = () => {
 
           <div>
             <h4 className="text-sm uppercase tracking-widest text-gray-500 mb-4">
-              Quick Links
-            </h4>
-            <div className="space-y-2 text-sm font-light">
-              <a href="#" className="block text-gray-400 hover:text-white transition-colors duration-300">
-                About Us
-              </a>
-              <a href="#" className="block text-gray-400 hover:text-white transition-colors duration-300">
-                Gallery
-              </a>
-              <a href="#" className="block text-gray-400 hover:text-white transition-colors duration-300">
-                Events
-              </a>
-              <a href="#" className="block text-gray-400 hover:text-white transition-colors duration-300">
-                Join Us
-              </a>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-sm uppercase tracking-widest text-gray-500 mb-4">
               Connect
             </h4>
             <div className="space-y-2 text-sm font-light">
