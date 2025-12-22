@@ -28,7 +28,7 @@ export default function CancellationRefund() {
         <p className="text-gray-300">
           Refund requests can be submitted at:{" "}
           <span className="font-semibold text-white">
-            your-email@example.com
+            designclub@iitdh.ac.in
           </span>.
           Approved refunds will be processed to the original payment method
           within 5–7 business days.
