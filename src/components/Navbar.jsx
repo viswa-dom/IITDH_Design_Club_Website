@@ -5,6 +5,7 @@ import { Menu, X, User, LogOut } from 'lucide-react';
 export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('hero');
   const navigate = useNavigate();
   const location = useLocation();
   const isAdmin = user?.app_metadata?.role === 'admin';
@@ -16,6 +17,60 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Track active section based on scroll position
+  useEffect(() => {
+    // Only track on home page
+    if (location.pathname !== '/') {
+      setActiveSection('');
+      return;
+    }
+
+    const sections = ['hero', 'etymology', 'works', 'contact'];
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '-50% 0px -50% 0px',
+      threshold: 0
+    };
+
+    const observerCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    sections.forEach((sectionId) => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      sections.forEach((sectionId) => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
+    };
+  }, [location.pathname]);
+
+  // Set active section for merch page
+  useEffect(() => {
+    if (location.pathname === '/merch') {
+      setActiveSection('merch');
+    } else if (location.pathname === '/cart') {
+      setActiveSection('cart');
+    } else if (location.pathname === '/admin' || location.pathname.startsWith('/admin/')) {
+      setActiveSection('admin');
+    }
+  }, [location.pathname]);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -100,6 +155,14 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
     setIsMobileMenuOpen(false);
   };
 
+  // Check if a link is active
+  const isLinkActive = (link) => {
+    if (link.action === 'merch') {
+      return activeSection === 'merch';
+    }
+    return activeSection === link.id;
+  };
+
   return (
     <>
       <nav
@@ -124,25 +187,47 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link)}
-                  className="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300 uppercase tracking-wider"
+                  className="relative text-sm font-light transition-colors duration-300 uppercase tracking-wider group"
                 >
-                  {link.label}
+                  <span className={`transition-colors duration-300 ${
+                    isLinkActive(link) ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                  }`}>
+                    {link.label}
+                  </span>
+                  {/* Animated Underline */}
+                  <span className={`absolute -bottom-1 left-0 h-[2px] bg-white transition-all duration-300 ${
+                    isLinkActive(link) ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`} />
                 </button>
               ))}
               {isAdmin && (
                 <button
                   onClick={() => navigate('/admin')}
-                  className="text-sm font-light text-gray-400 hover:text-red-300 transition-colors duration-300 uppercase tracking-wider"
+                  className="relative text-sm font-light transition-colors duration-300 uppercase tracking-wider group"
                 >
-                  Admin
+                  <span className={`transition-colors duration-300 ${
+                    activeSection === 'admin' ? 'text-red-300' : 'text-gray-400 group-hover:text-red-300'
+                  }`}>
+                    Admin
+                  </span>
+                  <span className={`absolute -bottom-1 left-0 h-[2px] bg-red-300 transition-all duration-300 ${
+                    activeSection === 'admin' ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`} />
                 </button>
               )}
               {user && (
                 <button
                   onClick={handleCartClick}
-                  className="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300 uppercase tracking-wider"
+                  className="relative text-sm font-light transition-colors duration-300 uppercase tracking-wider group"
                 >
-                  Your Cart
+                  <span className={`transition-colors duration-300 ${
+                    activeSection === 'cart' ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                  }`}>
+                    Your Cart
+                  </span>
+                  <span className={`absolute -bottom-1 left-0 h-[2px] bg-white transition-all duration-300 ${
+                    activeSection === 'cart' ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`} />
                 </button>
               )}
 
@@ -200,6 +285,27 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
       {/* Full Screen Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[60] md:hidden">
+          {/* Top Bar with Logo and Close Button - Always Visible */}
+          <div className="fixed top-0 left-0 right-0 z-[70] bg-black border-b border-gray-800">
+            <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  scrollToSection('hero');
+                }}
+                className="text-xl font-light tracking-tight hover:opacity-70 transition-opacity duration-300"
+              >
+                ABHIKALPA
+              </button>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 hover:bg-white hover:bg-opacity-10 transition-all duration-300 rounded"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
           {/* Dark Overlay Background */}
           <div 
             className="absolute inset-0 bg-black bg-opacity-95 backdrop-blur-md z-[60]"
@@ -208,16 +314,22 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
           
           {/* Menu Content */}
           <div className="relative h-full overflow-y-auto z-[60]">
-            <div className="min-h-full flex flex-col justify-center px-6 py-24">
+            <div className="min-h-full flex flex-col justify-center px-6 py-24 pt-28">
               {/* Main Navigation Links */}
               <div className="space-y-6 mb-12">
                 {navLinks.map((link) => (
                   <button
                     key={link.label}
                     onClick={() => handleNavClick(link)}
-                    className="block w-full text-left text-2xl font-light text-white hover:text-gray-400 transition-colors duration-300 uppercase tracking-wider py-2"
+                    className={`block w-full text-left text-2xl font-light transition-colors duration-300 uppercase tracking-wider py-2 ${
+                      isLinkActive(link) ? 'text-white' : 'text-gray-400 hover:text-white'
+                    }`}
                   >
                     {link.label}
+                    {/* Mobile underline indicator */}
+                    {isLinkActive(link) && (
+                      <div className="w-12 h-[2px] bg-white mt-2 animate-slideIn" />
+                    )}
                   </button>
                 ))}
                 {isAdmin && (
@@ -226,17 +338,27 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                       navigate('/admin');
                       setIsMobileMenuOpen(false);
                     }}
-                    className="block w-full text-left text-2xl font-light text-red-400 hover:text-red-300 transition-colors duration-300 uppercase tracking-wider py-2"
+                    className={`block w-full text-left text-2xl font-light transition-colors duration-300 uppercase tracking-wider py-2 ${
+                      activeSection === 'admin' ? 'text-red-300' : 'text-red-400 hover:text-red-300'
+                    }`}
                   >
                     Admin
+                    {activeSection === 'admin' && (
+                      <div className="w-12 h-[2px] bg-red-300 mt-2 animate-slideIn" />
+                    )}
                   </button>
                 )}
                 {user && (
                   <button
                     onClick={handleCartClick}
-                    className="block w-full text-left text-2xl font-light text-white hover:text-gray-400 transition-colors duration-300 uppercase tracking-wider py-2"
+                    className={`block w-full text-left text-2xl font-light transition-colors duration-300 uppercase tracking-wider py-2 ${
+                      activeSection === 'cart' ? 'text-white' : 'text-gray-400 hover:text-white'
+                    }`}
                   >
                     Your Cart
+                    {activeSection === 'cart' && (
+                      <div className="w-12 h-[2px] bg-white mt-2 animate-slideIn" />
+                    )}
                   </button>
                 )}
               </div>
@@ -286,6 +408,24 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
           </div>
         </div>
       )}
+
+      {/* CSS for underline animation */}
+      <style>{`
+        @keyframes slideIn {
+          from {
+            width: 0;
+            opacity: 0;
+          }
+          to {
+            width: 3rem;
+            opacity: 1;
+          }
+        }
+        
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out;
+        }
+      `}</style>
     </>
   );
 };
