@@ -18,28 +18,31 @@ export default async function handler(req, res) {
     const { seed, style } = req.body;
 
     // Check if API key is configured
-    if (!process.env.ANTHROPIC_API_KEY) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    
+    console.log('=== DEBUG INFO ===');
+    console.log('1. API Key exists:', !!apiKey);
+    
+    if (!apiKey) {
+      console.error('ERROR: ANTHROPIC_API_KEY is not set!');
+      console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('ANTHROPIC')));
       throw new Error('ANTHROPIC_API_KEY not configured');
     }
+    
+    console.log('2. API Key prefix:', apiKey.substring(0, 10) + '...');
+    console.log('3. API Key length:', apiKey.length);
+    console.log('4. Seed:', seed);
+    console.log('5. Style:', style);
 
-    console.log('Generating prompt with seed:', seed, 'style:', style);
-
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.VITE_ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 50,
-        temperature: 1.35,
-        top_p: 0.9,
-        messages: [
-          {
-            role: "user",
-            content: `
+    const requestBody = {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 50,
+      temperature: 1.35,
+      top_p: 0.9,
+      messages: [
+        {
+          role: "user",
+          content: `
 Seed: ${seed}
 Directive: ${style}
 
@@ -52,33 +55,71 @@ Rules:
 - Must feel unlike typical design prompts
 - Output ONLY the prompt text
 `
-          }
-        ],
-      }),
+        }
+      ],
+    };
+
+    console.log('6. Making request to Anthropic API...');
+    console.log('7. Request model:', requestBody.model);
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify(requestBody),
     });
+
+    console.log('8. Response received');
+    console.log('9. Response status:', response.status);
+    console.log('10. Response statusText:', response.statusText);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Anthropic API error:', response.status, errorText);
-      throw new Error(`Anthropic API error: ${response.status}`);
+      console.error('11. ERROR RESPONSE:');
+      console.error('    Status:', response.status);
+      console.error('    Body:', errorText);
+      
+      let parsedError;
+      try {
+        parsedError = JSON.parse(errorText);
+        console.error('    Parsed error:', JSON.stringify(parsedError, null, 2));
+      } catch (e) {
+        console.error('    Could not parse error as JSON');
+      }
+      
+      throw new Error(`Anthropic API error ${response.status}: ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('12. Success! Response data:', JSON.stringify(data, null, 2));
+    
     const prompt = data?.content?.[0]?.text?.trim();
+    console.log('13. Extracted prompt:', prompt);
 
     if (!prompt) {
+      console.error('14. ERROR: Prompt is empty!');
+      console.error('    Full response:', JSON.stringify(data, null, 2));
       throw new Error("Empty response from API");
     }
 
-    console.log('Generated prompt:', prompt);
+    console.log('15. SUCCESS! Returning prompt');
+    console.log('=== END DEBUG ===');
 
     return res.status(200).json({ 
       success: true,
-      prompt: prompt 
+      prompt: prompt,
+      isFallback: false
     });
 
   } catch (error) {
-    console.error('Generate prompt error:', error);
+    console.error('=== ERROR CAUGHT ===');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('=== END ERROR ===');
     
     // Return fallback prompts on error
     const fallbacks = [
@@ -96,10 +137,13 @@ Rules:
 
     const fallbackPrompt = fallbacks[Math.floor(Math.random() * fallbacks.length)];
 
+    console.log('USING FALLBACK:', fallbackPrompt);
+
     return res.status(200).json({ 
       success: true,
       prompt: fallbackPrompt,
-      isFallback: true 
+      isFallback: true,
+      error: error.message // Include error for debugging
     });
   }
 }
