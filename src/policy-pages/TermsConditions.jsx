@@ -4,7 +4,7 @@ export default function TermsConditions() {
   useEffect(() => {
       window.scrollTo({top: 0, behavior: 'smooth'});
     }, []);
-    
+
   return (
     <div className="min-h-screen bg-black pt-28 pb-20 text-white">
       <div className="max-w-4xl mx-auto space-y-6 px-6">
@@ -22,10 +22,6 @@ export default function TermsConditions() {
         </p>
 
         <h2 className="text-2xl font-medium mt-10">Payments</h2>
-
-        <p className="text-gray-300">
-          All transactions are handled securely by Razorpay.
-        </p>
 
         <h2 className="text-2xl font-medium mt-10">
           Intellectual Property
