@@ -13,6 +13,7 @@ export const Contact = () => {
   const sectionRef = useRef(null);
 
   useEffect(() => {
+    document.title = "Contact Us - Abhikalpa";
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {

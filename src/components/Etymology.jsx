@@ -5,6 +5,7 @@ export const Etymology = () => {
   const sectionRef = useRef(null);
 
   useEffect(() => {
+    // document.title = "Etymology - Abhikalpa";
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {

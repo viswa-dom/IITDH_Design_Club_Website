@@ -5,6 +5,7 @@ export default function Admin() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = "Admin Controls - Abhikalpa";
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 

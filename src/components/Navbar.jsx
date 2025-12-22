@@ -48,6 +48,25 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
     setIsMobileMenuOpen(false);
   };
 
+  const handleLogout = async () => {
+    setIsMobileMenuOpen(false);
+    
+    // List of protected/user-specific pages that should redirect to home on logout
+    const protectedPages = ['/profile', '/cart', '/admin', '/admin/users', '/admin/products', '/admin/orders'];
+    const currentPath = location.pathname;
+    
+    // Check if current page is protected or starts with a protected path
+    const shouldRedirect = protectedPages.some(page => currentPath.startsWith(page));
+    
+    // Call the logout function
+    await onLogout();
+    
+    // Redirect to home if on a protected page
+    if (shouldRedirect) {
+      navigate('/', { replace: true });
+    }
+  };
+
   const navLinks = [
     { label: 'Home', id: 'hero' },
     { label: 'About', id: 'etymology' },
@@ -127,7 +146,7 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                       <span className="font-light">Profile</span>
                     </button>
                     <button
-                      onClick={onLogout}
+                      onClick={handleLogout}
                       className="flex items-center gap-2 px-4 py-2 text-sm font-light border border-white hover:bg-white hover:text-black transition-all duration-300"
                     >
                       <LogOut className="w-4 h-4" />
@@ -210,7 +229,7 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                       View Profile
                     </button>
                     <button
-                      onClick={onLogout}
+                      onClick={handleLogout}
                       className="flex items-center gap-2 w-full px-4 py-2 text-sm font-light border border-white hover:bg-white hover:text-black transition-all duration-300"
                     >
                       <LogOut className="w-4 h-4" />

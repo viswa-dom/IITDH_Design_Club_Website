@@ -29,6 +29,7 @@ export const FeaturedWorks = () => {
   const sectionRef = useRef(null);
 
   useEffect(() => {
+    // document.title = "Featured Works - Abhikalpa";
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {

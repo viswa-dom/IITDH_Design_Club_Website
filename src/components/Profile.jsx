@@ -9,6 +9,7 @@ const Profile = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    document.title = "My Profile - Abhikalpa";
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 

@@ -60,8 +60,16 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear user state immediately
+      setUser(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    }
   };
 
   const isAdmin = user?.user_metadata?.role === "admin";

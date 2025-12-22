@@ -40,6 +40,7 @@ export const CartProvider = ({ children }) => {
 
   // Validate cart against current stock
   useEffect(() => {
+    document.title = "Your Cart - Abhikalpa";
     const validateCart = async () => {
       try {
         const res = await fetch("/api/products");

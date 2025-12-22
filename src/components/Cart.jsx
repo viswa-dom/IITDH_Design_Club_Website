@@ -16,6 +16,7 @@ export default function Cart() {
   } = useCart();
 
   useEffect(() => {
+    document.title = "Your Cart - Abhikalpa";
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 

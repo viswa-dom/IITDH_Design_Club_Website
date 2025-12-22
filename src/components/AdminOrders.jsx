@@ -45,6 +45,7 @@ export default function AdminOrders() {
   };
 
   useEffect(() => {
+    document.title = "Admin Orders Management - Abhikalpa";
     fetchOrders();
   }, []);
 

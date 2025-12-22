@@ -43,6 +43,7 @@ export default function AdminMerch() {
   };
 
   useEffect(() => {
+    document.title = "Admin Merch Management - Abhikalpa";
     fetchProducts();
   }, []);
 

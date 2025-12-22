@@ -2,16 +2,19 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Upload, Plus, Minus } from "lucide-react";
 import { useCart } from "./CartContext";
+import { useAuth } from "../hooks/useAuth"; // Import useAuth
 
 export default function Merch() {
   const navigate = useNavigate();
   const { cart, addToCart, removeFromCart, getCartCount, getCartTotal } = useCart();
+  const { user } = useAuth(); // Get user from auth hook
 
   const [merchItems, setMerchItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSizes, setSelectedSizes] = useState({});
 
   useEffect(() => {
+    document.title = "Merch Collection - Abhikalpa";
     window.scrollTo({ top: 0, behavior: "smooth" });
     fetchMerch();
   }, []);
@@ -27,12 +30,11 @@ export default function Merch() {
       setLoading(false);
     }
   };
+
   const isSizedProduct = (item) => item.sizeType !== "none";
 
   const getCartKey = (item, size) =>
     isSizedProduct(item) ? `${item._id}-${size}` : item._id;
-
-  
 
   const getTotalStock = (item) => {
     if (item.sizeType === "none") return item.quantity || 0;
@@ -51,46 +53,37 @@ export default function Merch() {
     }));
   };
 
-  // const handleAddToCart = (item) => {
-  //   if (item.sizeType !== "none" && !selectedSizes[item._id]) {
-  //     alert("Please select a size first");
-  //     return;
-  //   }
-
-  //   const size = selectedSizes[item._id];
-  //   const availableStock = getAvailableStock(item, size);
-  //   const cartQty = cart[`${item._id}-${size}`]?.quantity || 0;
-
-  //   if (cartQty >= availableStock) {
-  //     alert("No more stock available");
-  //     return;
-  //   }
-
-  //   addToCart(item, size);
-  // };
-
   const handleAddToCart = (item) => {
-  let size = null;
-
-  if (isSizedProduct(item)) {
-    size = selectedSizes[item._id];
-    if (!size) {
-      alert("Please select a size");
+    // Check if user is logged in first
+    if (!user) {
+      // Scroll to top and trigger login modal
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      // Dispatch custom event to open login modal
+      window.dispatchEvent(new CustomEvent("open-login"));
       return;
     }
-  }
 
-  const cartKey = getCartKey(item, size);
-  const cartQty = cart[cartKey]?.quantity || 0;
-  const availableStock = getAvailableStock(item, size);
+    let size = null;
 
-  if (cartQty >= availableStock) {
-    alert("No more stock available");
-    return;
-  }
+    if (isSizedProduct(item)) {
+      size = selectedSizes[item._id];
+      if (!size) {
+        alert("Please select a size");
+        return;
+      }
+    }
 
-  addToCart(item, size);
-};
+    const cartKey = getCartKey(item, size);
+    const cartQty = cart[cartKey]?.quantity || 0;
+    const availableStock = getAvailableStock(item, size);
+
+    if (cartQty >= availableStock) {
+      alert("No more stock available");
+      return;
+    }
+
+    addToCart(item, size);
+  };
 
   const handleRemoveFromCart = (item) => {
     const size = isSizedProduct(item)
@@ -132,7 +125,7 @@ export default function Merch() {
             <p className="text-gray-400 font-light">Official Abhikalpa merchandise</p>
           </div>
 
-          {cartCount > 0 && (
+          {user && cartCount > 0 && (
             <button
               onClick={() => navigate("/cart")}
               className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-sm hover:bg-gray-200 transition"
@@ -247,43 +240,56 @@ export default function Merch() {
                         </div>
                       )}
 
-                      {/* CART */}
+                      {/* CART - Show different UI based on login status */}
                       {!isOutOfStock && (
                         <>
-                          {quantity > 0 ? (
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-3">
-                                <button
-                                  onClick={() => handleRemoveFromCart(item)}
-                                  className="w-10 h-10 flex items-center justify-center border border-black hover:bg-black hover:text-white transition rounded-sm"
-                                >
-                                  <Minus className="w-4 h-4" />
-                                </button>
-
-                                <span className="text-lg font-light min-w-[2rem] text-center">
-                                  {quantity}
-                                </span>
-
-                                <button
-                                  onClick={() => handleAddToCart(item)}
-                                  className="w-10 h-10 flex items-center justify-center border border-black hover:bg-black hover:text-white transition rounded-sm"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                </button>
-                              </div>
-
-                              <span className="text-sm text-gray-600 font-light">
-                                ₹{item.price * quantity}
-                              </span>
-                            </div>
-                          ) : (
+                          {!user ? (
+                            // Not logged in - show login button
                             <button
                               onClick={() => handleAddToCart(item)}
-                              disabled={item.sizeType !== "none" && !selectedSize}
-                              className="w-full py-3 bg-black text-white font-light hover:bg-gray-900 transition rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full py-3 bg-black text-white font-light hover:bg-gray-900 transition rounded-sm"
                             >
-                              {item.sizeType !== "none" && !selectedSize ? "Select Size" : "Add to Cart"}
+                              Log in to Purchase
                             </button>
+                          ) : (
+                            // Logged in - show cart controls
+                            <>
+                              {quantity > 0 ? (
+                                <div className="flex items-center justify-between gap-4">
+                                  <div className="flex items-center gap-3">
+                                    <button
+                                      onClick={() => handleRemoveFromCart(item)}
+                                      className="w-10 h-10 flex items-center justify-center border border-black hover:bg-black hover:text-white transition rounded-sm"
+                                    >
+                                      <Minus className="w-4 h-4" />
+                                    </button>
+
+                                    <span className="text-lg font-light min-w-[2rem] text-center">
+                                      {quantity}
+                                    </span>
+
+                                    <button
+                                      onClick={() => handleAddToCart(item)}
+                                      className="w-10 h-10 flex items-center justify-center border border-black hover:bg-black hover:text-white transition rounded-sm"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                    </button>
+                                  </div>
+
+                                  <span className="text-sm text-gray-600 font-light">
+                                    ₹{item.price * quantity}
+                                  </span>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => handleAddToCart(item)}
+                                  disabled={item.sizeType !== "none" && !selectedSize}
+                                  className="w-full py-3 bg-black text-white font-light hover:bg-gray-900 transition rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {item.sizeType !== "none" && !selectedSize ? "Select Size" : "Add to Cart"}
+                                </button>
+                              )}
+                            </>
                           )}
                         </>
                       )}
@@ -296,8 +302,8 @@ export default function Merch() {
         </div>
       </section>
 
-      {/* MOBILE CART BAR */}
-      {cartCount > 0 && (
+      {/* MOBILE CART BAR - Only show when logged in */}
+      {user && cartCount > 0 && (
         <button
           onClick={() => navigate("/cart")}
           className="fixed bottom-6 left-6 right-6 md:hidden bg-white text-black p-4 rounded-sm shadow-2xl flex items-center justify-between hover:bg-gray-100 transition"

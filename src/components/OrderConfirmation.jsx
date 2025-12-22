@@ -10,6 +10,12 @@ export default function OrderConfirmation() {
   const { clearCart } = useCart();
 
   useEffect(() => {
+    // Force scroll to top immediately - before any other logic
+    window.scrollTo(0, 0);
+    document.title = "Order Successful - Abhikalpa";
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
     // Check if user came from payment form (Google Form redirect)
     const urlParams = new URLSearchParams(window.location.search);
     const hasFormToken = urlParams.has('submitted') || sessionStorage.getItem('order_confirmed');
@@ -24,15 +30,26 @@ export default function OrderConfirmation() {
     setIsValidSession(true);
     sessionStorage.removeItem('order_confirmed');
     
-    // Scroll to top when component mounts
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
     // Clear the cart since order is confirmed
     clearCart();
     
     // Trigger animation after a brief delay
     setTimeout(() => setShowContent(true), 100);
+
+    // Additional scroll enforcement after a small delay
+    const scrollTimer = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 50);
+
+    return () => clearTimeout(scrollTimer);
   }, [navigate, clearCart]);
+
+  // Force scroll on render as well
+  useEffect(() => {
+    if (isValidSession) {
+      window.scrollTo(0, 0);
+    }
+  }, [isValidSession]);
 
   // Don't render anything if session is invalid
   if (!isValidSession) {
