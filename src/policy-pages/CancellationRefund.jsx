@@ -1,3 +1,9 @@
+import { useEffect } from "react";
+
+useEffect(() => {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }, []);
+
 export default function CancellationRefund() {
   return (
     <div className="min-h-screen bg-black pt-28 pb-20 text-white">
