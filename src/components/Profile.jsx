@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Package, ShoppingBag, User, Mail, Phone, UserCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { Helmet } from 'react-helmet-async';
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -9,7 +10,6 @@ const Profile = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    document.title = "My Profile - Abhikalpa";
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 
@@ -72,6 +72,9 @@ const Profile = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <Helmet>
+          <title>My Profile - Abhikalpa</title>
+        </Helmet>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
     );
@@ -79,6 +82,9 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <Helmet>
+        <title>My Profile - Abhikalpa</title>
+      </Helmet>
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-6">
         <div className="max-w-7xl mx-auto">

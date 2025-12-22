@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 const triviaItems = [
   {
@@ -59,6 +60,9 @@ export const Trivia = () => {
       ref={sectionRef}
       className="min-h-screen flex items-center justify-center bg-black text-white px-6 py-20"
     >
+      <Helmet>
+        <title>Landing Page of Abhikalpa - Abhikalpa</title>
+      </Helmet>
       <div className="max-w-5xl mx-auto w-full">
         <h2
           className={`text-4xl md:text-6xl font-light mb-16 text-center transition-all duration-1000 ${

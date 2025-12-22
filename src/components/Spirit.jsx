@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 const manifestoLines = [
   'We believe in design that questions.',
@@ -48,6 +49,9 @@ export const Spirit = () => {
       ref={sectionRef}
       className="relative min-h-screen flex items-center justify-center bg-black text-white px-6 py-20"
     >
+      <Helmet>
+        <title>Landing Page of Abhikalpa - Abhikalpa</title>
+      </Helmet>
       <div
         className="absolute inset-0 opacity-10"
         style={{

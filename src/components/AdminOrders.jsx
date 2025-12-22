@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { Helmet } from 'react-helmet-async';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -45,7 +46,6 @@ export default function AdminOrders() {
   };
 
   useEffect(() => {
-    document.title = "Admin Orders Management - Abhikalpa";
     fetchOrders();
   }, []);
 
@@ -207,6 +207,9 @@ export default function AdminOrders() {
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-24 px-6">
+      <Helmet>
+        <title>Admin Orders Management - Abhikalpa</title>
+      </Helmet>
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <div>

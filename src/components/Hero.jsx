@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 export const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -25,6 +26,9 @@ export const Hero = () => {
       ref={heroRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black text-white"
     >
+      <Helmet>
+        <title>Abhikalpa Landing Page - Abhikalpa</title>
+      </Helmet>
       <div
         className="absolute inset-0 opacity-20"
         style={{

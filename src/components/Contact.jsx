@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Mail, Instagram, Send, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 export const Contact = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,6 @@ export const Contact = () => {
   const sectionRef = useRef(null);
 
   useEffect(() => {
-    // document.title = "Contact Us - Abhikalpa";
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -83,6 +83,9 @@ export const Contact = () => {
       ref={sectionRef}
       className="min-h-screen flex items-center justify-center bg-black text-white px-6 py-20"
     >
+      <Helmet>
+        <title>Contact Us - Abhikalpa</title>
+      </Helmet>
       <div className="max-w-4xl mx-auto w-full">
         <h2
           className={`text-4xl md:text-6xl font-light mb-8 transition-all duration-1000 ${

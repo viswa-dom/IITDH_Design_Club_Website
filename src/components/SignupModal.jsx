@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Mail, Lock, User, Phone, AlertCircle, CheckCircle } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin, onGoogleSignIn }) => {
   const [email, setEmail] = useState('');
@@ -87,6 +88,9 @@ export const SignupModal = ({ isOpen, onClose, onSignup, onSwitchToLogin, onGoog
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-80 backdrop-blur-sm">
+      <Helmet>
+        <title>Sign Up - Abhikalpa</title>
+      </Helmet>
       <div className="relative w-full max-w-md bg-white text-black rounded-sm shadow-2xl">
         
         <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-gray-100" aria-label="Close">

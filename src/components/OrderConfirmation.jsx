@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Check, ShoppingBag, Home } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "./CartContext";
+import { Helmet } from 'react-helmet-async';
 
 export default function OrderConfirmation() {
   const navigate = useNavigate();
@@ -12,7 +13,6 @@ export default function OrderConfirmation() {
   useEffect(() => {
     // Force scroll to top immediately - before any other logic
     window.scrollTo(0, 0);
-    document.title = "Order Successful - Abhikalpa";
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
 
@@ -58,6 +58,9 @@ export default function OrderConfirmation() {
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-20 px-6">
+      <Helmet>
+        <title>Order Confirmation - Abhikalpa</title>
+      </Helmet>
       <div className="max-w-3xl mx-auto">
         {/* Success Icon with Animation */}
         <div className="flex justify-center mb-12">

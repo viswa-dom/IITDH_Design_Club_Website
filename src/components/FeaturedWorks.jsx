@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 const works = [
   {
@@ -29,7 +30,6 @@ export const FeaturedWorks = () => {
   const sectionRef = useRef(null);
 
   useEffect(() => {
-    // document.title = "Featured Works - Abhikalpa";
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -51,6 +51,9 @@ export const FeaturedWorks = () => {
       ref={sectionRef}
       className="min-h-screen flex items-center justify-center bg-white text-black px-6 py-20"
     >
+      <Helmet>
+        <title>Featured Works - Abhikalpa</title>
+      </Helmet>
       <div className="max-w-7xl mx-auto w-full">
         <h2
           className={`text-4xl md:text-6xl font-light mb-16 transition-all duration-1000 ${

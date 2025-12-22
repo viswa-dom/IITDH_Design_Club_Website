@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Upload, X } from "lucide-react";
+import { Helmet } from 'react-helmet-async';
 
 export default function AdminMerch() {
   const [products, setProducts] = useState([]);
@@ -43,7 +44,6 @@ export default function AdminMerch() {
   };
 
   useEffect(() => {
-    document.title = "Admin Merch Management - Abhikalpa";
     fetchProducts();
   }, []);
 
@@ -211,6 +211,9 @@ const handleImageUpload = (e) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <Helmet>
+          <title>Admin Merch Management - Abhikalpa</title>
+        </Helmet>
         <p className="font-light tracking-wide">Loading products…</p>
       </div>
     );
@@ -218,6 +221,9 @@ const handleImageUpload = (e) => {
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-24 px-6">
+      <Helmet>
+        <title>Admin Merch Management - Abhikalpa</title>
+      </Helmet>
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between md:items-end gap-8 mb-20">
           <div>

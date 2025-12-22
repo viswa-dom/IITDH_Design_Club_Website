@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { Helmet } from 'react-helmet-async';
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -43,7 +44,6 @@ export default function AdminUsers() {
   };
 
   useEffect(() => {
-    document.title = "Admin Users Management - Abhikalpa";
     fetchUsers();
   }, []);
 
@@ -158,9 +158,12 @@ export default function AdminUsers() {
   if (error) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+        <Helmet>
+          <title>Admin Users Management - Abhikalpa</title>
+        </Helmet>
         <div className="text-center">
           <p className="text-xl font-light text-red-500 mb-6 tracking-wide">Error: {error}</p>
-          <button 
+          <button
             onClick={fetchUsers}
             className="px-6 py-2 border border-white hover:bg-white hover:text-black transition-all duration-300 tracking-wide text-sm"
           >
@@ -173,6 +176,9 @@ export default function AdminUsers() {
 
   return (
     <div className="min-h-screen bg-black text-white px-6 py-16 md:px-12 lg:px-24">
+      <Helmet>
+        <title>Admin Users Management - Abhikalpa</title>
+      </Helmet>
       {/* Header Section */}
       <div className="mb-16">
         <h1 className="text-4xl md:text-5xl font-light mb-4 tracking-wide">Users Management</h1>

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 export const Etymology = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
 
   useEffect(() => {
-    // document.title = "Etymology - Abhikalpa";
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -27,6 +27,9 @@ export const Etymology = () => {
       ref={sectionRef}
       className="min-h-screen flex items-center justify-center bg-white text-black px-6 py-20"
     >
+      <Helmet>
+        <title>Etymology of Abhikalpa - Abhikalpa</title>
+      </Helmet>
       <div className="max-w-4xl mx-auto">
         <div className="mb-16">
           <h2

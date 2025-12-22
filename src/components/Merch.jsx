@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Upload, Plus, Minus } from "lucide-react";
 import { useCart } from "./CartContext";
-import { useAuth } from "../hooks/useAuth"; // Import useAuth
+import { useAuth } from "../hooks/useAuth";
+import { Helmet } from 'react-helmet-async';
 
 export default function Merch() {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ export default function Merch() {
   const [selectedSizes, setSelectedSizes] = useState({});
 
   useEffect(() => {
-    document.title = "Merch Collection - Abhikalpa";
     window.scrollTo({ top: 0, behavior: "smooth" });
     fetchMerch();
   }, []);
@@ -117,6 +117,9 @@ export default function Merch() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <Helmet>
+        <title>Merch Collections - Abhikalpa</title>
+      </Helmet>
       {/* HERO */}
       <section className="pt-32 pb-16 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-6">

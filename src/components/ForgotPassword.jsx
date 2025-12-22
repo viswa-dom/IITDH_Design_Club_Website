@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Mail, CheckCircle, AlertCircle } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { Helmet } from 'react-helmet-async';
 
 export default function ForgotPassword({ onClose }) {
   const [email, setEmail] = useState("");
@@ -39,6 +40,9 @@ export default function ForgotPassword({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black bg-opacity-80 backdrop-blur-sm animate-fadeIn">
+      <Helmet>
+        <title>Forgot Password - Abhikalpa</title>
+      </Helmet>
       <div className="relative w-full max-w-md bg-white text-black rounded-sm shadow-2xl animate-slideUp">
 
         {/* Close button */}

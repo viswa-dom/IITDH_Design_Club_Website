@@ -6,6 +6,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
+import { HelmetProvider } from 'react-helmet-async'
 
 import { Hero } from "./components/Hero";
 import { Navbar } from "./components/Navbar";
@@ -130,7 +131,7 @@ export default function App() {
   if (loading) return <LoadingSection />;
 
   return (
-    <CartProvider>
+    <HelmetProvider>    <CartProvider>
       <BrowserRouter>
         <AppLayout
           user={user}
@@ -312,5 +313,6 @@ export default function App() {
         </AppLayout>
       </BrowserRouter>
     </CartProvider>
+  </HelmetProvider>
   );
 }

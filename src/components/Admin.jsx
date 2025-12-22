@@ -1,16 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { Helmet } from 'react-helmet-async';
 
 export default function Admin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Admin Controls - Abhikalpa";
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <Helmet>
+        <title>Admin Controls - Abhikalpa</title>
+      </Helmet>
       <section className="pt-32 pb-12 px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-light mb-2">Admin Dashboard</h1>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Lock, CheckCircle, AlertCircle } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from 'react-helmet-async';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -118,6 +119,9 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
+      <Helmet>
+        <title>Reset Password - Abhikalpa</title>
+      </Helmet>
       <div className="bg-white text-black max-w-md w-full p-8 rounded-sm shadow-2xl">
         <h2 className="text-3xl font-light mb-4">Reset Password</h2>
 

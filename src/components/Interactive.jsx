@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Sparkles } from "lucide-react";
+import { Helmet } from 'react-helmet-async';
 
 export const Interactive = () => {
   const [prompts, setPrompts] = useState([]);
@@ -99,6 +100,9 @@ Rules:
       ref={sectionRef}
       className="min-h-screen flex items-center justify-center bg-white text-black px-6 py-20"
     >
+      <Helmet>
+        <title>Abhikalpa Landing Page - Abhikalpa</title>
+      </Helmet>
       <div className="max-w-4xl mx-auto w-full text-center">
         <h2
           className={`text-4xl md:text-6xl font-light mb-8 transition-all duration-1000 ${

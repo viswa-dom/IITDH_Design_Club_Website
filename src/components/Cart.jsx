@@ -4,6 +4,7 @@ import { useCart } from "./CartContext";
 import { QRCodeSVG } from "qrcode.react";
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { Helmet } from 'react-helmet-async';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -16,7 +17,6 @@ export default function Cart() {
   } = useCart();
 
   useEffect(() => {
-    document.title = "Your Cart - Abhikalpa";
     window.scrollTo({top: 0, behavior: 'smooth'});
   }, []);
 
@@ -158,6 +158,9 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <Helmet>
+        <title>Your Cart - Abhikalpa</title>
+      </Helmet>
       {/* Header */}
       <section className="pt-32 pb-16 px-6">
         <div className="max-w-7xl mx-auto">
