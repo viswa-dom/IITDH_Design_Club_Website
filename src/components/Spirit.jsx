@@ -50,7 +50,7 @@ export const Spirit = () => {
       className="relative min-h-screen flex items-center justify-center bg-black text-white px-6 py-20"
     >
       <Helmet>
-        <title>Abhikalpa Landing Page - Abhikalpa</title>
+        <title>Home - Abhikalpa</title>
       </Helmet>
       <div
         className="absolute inset-0 opacity-10"
