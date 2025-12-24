@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
-import logoImage from '../../public/abhikalpa_text.jpg';
+import logoImage from '/abhikalpa_text.jpg';
 
 export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -182,7 +182,7 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
               <img 
                 src={logoImage} 
                 alt="Abhikalpa" 
-                className="h-8 md:h-10 w-auto object-contain"
+                className="h-8 md:h-10 w-auto object-contain mix-blend-lighten"
               />
             </button>
 
@@ -303,7 +303,7 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                 <img 
                   src={logoImage} 
                   alt="Abhikalpa" 
-                  className="h-7 w-auto object-contain"
+                  className="h-7 w-auto object-contain mix-blend-lighten"
                 />
               </button>
               <button
