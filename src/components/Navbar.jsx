@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
+import logoImage from '../../public/abhikalpa_text.jpg';
 
 export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -176,9 +177,13 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
           <div className="flex items-center justify-between">
             <button
               onClick={() => scrollToSection('hero')}
-              className="text-xl md:text-2xl font-light tracking-tight hover:opacity-70 transition-opacity duration-300 z-[70]"
+              className="hover:opacity-70 transition-opacity duration-300 z-[70]"
             >
-              ABHIKALPA
+              <img 
+                src={logoImage} 
+                alt="Abhikalpa" 
+                className="h-8 md:h-10 w-auto object-contain"
+              />
             </button>
 
             {/* Desktop Menu */}
@@ -293,9 +298,13 @@ export const Navbar = ({ onLoginClick, onSignupClick, user, onLogout, hideAuthUI
                   setIsMobileMenuOpen(false);
                   scrollToSection('hero');
                 }}
-                className="text-xl font-light tracking-tight hover:opacity-70 transition-opacity duration-300"
+                className="hover:opacity-70 transition-opacity duration-300"
               >
-                ABHIKALPA
+                <img 
+                  src={logoImage} 
+                  alt="Abhikalpa" 
+                  className="h-7 w-auto object-contain"
+                />
               </button>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
