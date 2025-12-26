@@ -57,7 +57,7 @@ export const Hero = () => {
           <img 
                 src={logoImage} 
                 alt="Abhikalpa" 
-                className="h-8 md:h-10 w-auto object-contain mix-blend-lighten"
+                className="h-24 md:h-20 w-auto object-contain mix-blend-lighten"
               />
         </div>
 
