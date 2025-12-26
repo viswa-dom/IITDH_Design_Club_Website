@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import logoImage from '/abhikalpa_text.jpg';
 
 export const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -54,11 +53,12 @@ export const Hero = () => {
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
         <div className="overflow-hidden mb-6">
-          <img 
-                src={logoImage} 
-                alt="Abhikalpa" 
-                className="h-24 md:h-20 w-auto object-contain mix-blend-lighten"
-              />
+          <h1
+            className="text-7xl md:text-9xl font-light tracking-tight animate-slideUp"
+            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+          >
+            ABHIKALPA
+          </h1>
         </div>
 
         <div className="overflow-hidden mb-4">
