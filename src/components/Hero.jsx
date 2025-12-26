@@ -53,12 +53,11 @@ export const Hero = () => {
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
         <div className="overflow-hidden mb-6">
-          <h1
-            className="text-7xl md:text-9xl font-light tracking-tight animate-slideUp"
-            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-          >
-            ABHIKALPA
-          </h1>
+          <img 
+                src={logoImage} 
+                alt="Abhikalpa" 
+                className="h-8 md:h-10 w-auto object-contain mix-blend-lighten"
+              />
         </div>
 
         <div className="overflow-hidden mb-4">
