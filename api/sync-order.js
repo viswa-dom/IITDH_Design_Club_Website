@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Email is NO LONGER required from form - we get it from the order
+    // Email is no longer required from form - we get it from the order
     let { transactionId, name, phone, orderRef } = req.body;
 
     // Validate required fields
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ GET EMAIL FROM THE EXISTING ORDER (stored during checkout)
+    // GET EMAIL FROM THE EXISTING ORDER (stored during checkout)
     const userEmail = matchedOrder.userEmail;
     
     if (!userEmail) {
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
 
     console.log('Found order with email:', userEmail);
 
-    // ✅ DEDUCT STOCK BEFORE CONFIRMING ORDER
+    // DEDUCT STOCK BEFORE CONFIRMING ORDER
     console.log('Deducting stock for order:', matchedOrder._id);
     
     const stockDeductionResults = [];
@@ -190,7 +190,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ UPDATE ORDER WITH CUSTOMER INFO (using email from order, not form)
+    // UPDATE ORDER WITH CUSTOMER INFO (using email from order, not form)
     const result = await orders.findOneAndUpdate(
       { _id: matchedOrder._id },
       {
@@ -198,7 +198,7 @@ export default async function handler(req, res) {
           transactionId,
           customer: { 
             name, 
-            email: userEmail,  // ✅ Use email from order
+            email: userEmail,  // Use email from order
             phone: phone || "N/A" 
           },
           status: "Confirmed",
