@@ -26,7 +26,6 @@ const supabase = createClient(
 );
 
 
-// ------------------- Main Handler -------------------
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -56,7 +55,7 @@ export default async function handler(req, res) {
   }
 }
 
-// ------------------- GET (Public) -------------------
+// GET - Public
 async function handleGET(req, res) {
   try {
     console.log('GET /api/products - Starting');
@@ -78,7 +77,7 @@ async function handleGET(req, res) {
   }
 }
 
-// ------------------- POST (Admin only) -------------------
+// POST (Admin only)
 async function handlePOST(req, res) {
   try {
     const token = req.headers.authorization?.replace("Bearer ", "");
@@ -110,7 +109,7 @@ async function handlePOST(req, res) {
   }
 }
 
-// ------------------- PUT (Admin only) -------------------
+// PUT (Admin only)
 async function handlePUT(req, res) {
   try {
     const token = req.headers.authorization?.replace("Bearer ", "");
@@ -145,7 +144,7 @@ async function handlePUT(req, res) {
   }
 }
 
-// ------------------- DELETE (Admin only) -------------------
+// DELETE (Admin only)
 async function handleDELETE(req, res) {
   try {
     const token = req.headers.authorization?.replace("Bearer ", "");
