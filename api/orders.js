@@ -31,8 +31,8 @@ export default async function handler(req, res) {
     const order = {
       items: req.body.items,
       total: req.body.total,
-      transactionRef: transactionRef,  // ✅ Order reference for customer
-      userEmail: req.body.userEmail,    // ✅ FIXED: Store user's email for later sync
+      transactionRef: transactionRef,  // Order reference for customer
+      userEmail: req.body.userEmail,    // FIXED: Store user's email for later sync
       transactionId: null,              // UPI transaction ID (filled later)
       customer: null,
       status: "Pending",
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     // Return the transaction reference to show to customer
     return res.status(201).json({ 
       _id: result.insertedId,
-      transactionRef: transactionRef  // ✅ Customer needs this!
+      transactionRef: transactionRef  // Customer needs this!
     });
   }
 

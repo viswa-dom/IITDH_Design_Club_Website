@@ -101,7 +101,7 @@ export default function Cart() {
             sizeType: item.sizeType || "none"
           })),
           total: total,
-          userEmail: user.email,  // ✅ Store user's email with the order
+          userEmail: user.email,  // Store user's email with the order
         }),
       });
 
