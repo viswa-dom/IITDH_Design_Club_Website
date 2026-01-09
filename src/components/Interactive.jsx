@@ -37,7 +37,7 @@ export const Interactive = () => {
 
       const style = styles[Math.floor(Math.random() * styles.length)];
 
-      // Call backend API instead of Anthropic directly
+      // Call backend API
       const res = await fetch("/api/generate-prompt", {
         method: "POST",
         headers: {
@@ -62,11 +62,6 @@ export const Interactive = () => {
 
       setCurrentPrompt(newPrompt);
       setPrompts(p => [...p, newPrompt]);
-
-      // Optional: Log if using fallback
-      if (data.isFallback) {
-        console.log('Using fallback prompt');
-      }
 
     } catch (error) {
       console.error('Error generating prompt:', error);
